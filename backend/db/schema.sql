@@ -6,6 +6,14 @@ create extension if not exists "pgcrypto";
 -- Enums
 do $$
 begin
+    if not exists (select 1 from pg_type where typname = 'resource_kind') then
+        create type resource_kind as enum (
+            'pantry',
+            'soup_kitchen',
+            'other'
+        );
+    end if;
+
     if not exists (select 1 from pg_type where typname = 'resource_type') then
         create type resource_type as enum (
             'produce',
@@ -28,14 +36,21 @@ create table if not exists pantries (
     name text not null,
     neighborhood text not null,
     address text,
+    zip_code text,
     latitude double precision,
     longitude double precision,
+    resource_kind resource_kind not null default 'pantry',
+    schedule jsonb,
+    is_open_now boolean,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
 
 create index if not exists pantries_name_idx on pantries (name);
 create index if not exists pantries_neighborhood_idx on pantries (neighborhood);
+create index if not exists pantries_zip_code_idx on pantries (zip_code);
+create index if not exists pantries_resource_kind_idx on pantries (resource_kind);
+create index if not exists pantries_is_open_now_idx on pantries (is_open_now);
 
 create table if not exists issue_categories (
     id uuid primary key default gen_random_uuid(),
@@ -74,6 +89,18 @@ create table if not exists supply_profiles (
     category_distribution jsonb not null default '{}'::jsonb,
     updated_at timestamptz not null default now()
 );
+
+create table if not exists pantry_photos (
+    id uuid primary key default gen_random_uuid(),
+    pantry_id uuid not null references pantries(id) on delete cascade,
+    image_url text not null,
+    captured_at timestamptz,
+    raw_tags jsonb,
+    normalized_tags jsonb,
+    created_at timestamptz not null default now()
+);
+
+create index if not exists pantry_photos_pantry_id_idx on pantry_photos (pantry_id);
 
 -- Public datasets
 create table if not exists public_datasets (

@@ -10,8 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db import create_pool, db_health_check
 from app.models import (
     AnalyticsSummary,
+    AnalyticsInsights,
     DatasetDetail,
     DatasetMetric,
+    DatasetOverlayPoint,
     DatasetOut,
     FeedbackCreate,
     FeedbackOut,
@@ -19,11 +21,16 @@ from app.models import (
     IssueCategory,
     PantryCreate,
     PantryOut,
+    PhotoClassify,
+    PhotoCreate,
+    PhotoOut,
     ReportCreate,
     ReportOut,
+    ResourceKind,
     ResourceType,
     SupplyProfileOut,
     TrendPoint,
+    InsightPoint,
 )
 
 load_dotenv()
@@ -102,10 +109,14 @@ async def create_pantry(request: Request, payload: PantryCreate) -> PantryOut:
             name,
             neighborhood,
             address,
+            zip_code,
             latitude,
-            longitude
+            longitude,
+            resource_kind,
+            schedule,
+            is_open_now
         )
-        values ($1,$2,$3,$4,$5)
+        values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         returning *
     """
     async with request.app.state.pool.acquire() as conn:
@@ -114,8 +125,12 @@ async def create_pantry(request: Request, payload: PantryCreate) -> PantryOut:
             payload.name,
             payload.neighborhood,
             payload.address,
+            payload.zip_code,
             payload.latitude,
             payload.longitude,
+            payload.resource_kind,
+            payload.schedule,
+            payload.is_open_now,
         )
     return PantryOut(**dict(row))
 
@@ -139,6 +154,50 @@ async def list_pantries(
     async with request.app.state.pool.acquire() as conn:
         rows = await conn.fetch(query, *values)
     return [PantryOut(**dict(row)) for row in rows]
+
+
+@app.get("/resources", response_model=list[PantryOut])
+async def list_resources(
+    request: Request,
+    neighborhood: str | None = None,
+    zip_code: str | None = Query(None, alias="zip"),
+    resource_kind: ResourceKind | None = Query(None),
+    open_now: bool | None = None,
+) -> list[PantryOut]:
+    where = []
+    values: list[Any] = []
+    if neighborhood:
+        values.append(neighborhood)
+        where.append(f"neighborhood = ${len(values)}")
+    if zip_code:
+        values.append(zip_code)
+        where.append(f"zip_code = ${len(values)}")
+    if resource_kind:
+        values.append(resource_kind)
+        where.append(f"resource_kind = ${len(values)}")
+    if open_now is not None:
+        values.append(open_now)
+        where.append(f"is_open_now = ${len(values)}")
+    where_sql = f"where {' and '.join(where)}" if where else ""
+    query = f"""
+        select *
+        from pantries
+        {where_sql}
+        order by name
+    """
+    async with request.app.state.pool.acquire() as conn:
+        rows = await conn.fetch(query, *values)
+    return [PantryOut(**dict(row)) for row in rows]
+
+
+@app.get("/resources/{resource_id}", response_model=PantryOut)
+async def get_resource(request: Request, resource_id: str) -> PantryOut:
+    query = "select * from pantries where id = $1"
+    async with request.app.state.pool.acquire() as conn:
+        row = await conn.fetchrow(query, resource_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    return PantryOut(**dict(row))
 
 
 @app.get("/pantries/{pantry_id}", response_model=PantryOut)
@@ -401,6 +460,72 @@ async def analytics_heatmap(
     return [HeatmapPoint(**dict(row)) for row in rows]
 
 
+@app.get("/analytics/insights", response_model=AnalyticsInsights)
+async def analytics_insights(request: Request) -> AnalyticsInsights:
+    longest_wait_query = """
+        select p.id, p.name, p.neighborhood, avg(f.wait_time_min) as metric
+        from feedback f
+        join pantries p on p.id = f.pantry_id
+        where f.wait_time_min is not null
+        group by p.id, p.name, p.neighborhood
+        order by metric desc nulls last
+        limit 5
+    """
+    lowest_satisfaction_query = """
+        select p.id, p.name, p.neighborhood, avg(f.rating) as metric
+        from feedback f
+        join pantries p on p.id = f.pantry_id
+        group by p.id, p.name, p.neighborhood
+        order by metric asc nulls last
+        limit 5
+    """
+    unmet_demand_query = """
+        select
+            p.id,
+            p.name,
+            p.neighborhood,
+            avg(case when f.wait_time_min >= 30 or f.rating <= 2 then 1 else 0 end) as metric
+        from feedback f
+        join pantries p on p.id = f.pantry_id
+        group by p.id, p.name, p.neighborhood
+        order by metric desc nulls last
+        limit 5
+    """
+    async with request.app.state.pool.acquire() as conn:
+        longest_wait = await conn.fetch(longest_wait_query)
+        lowest_satisfaction = await conn.fetch(lowest_satisfaction_query)
+        unmet_demand = await conn.fetch(unmet_demand_query)
+    return AnalyticsInsights(
+        longest_wait_times=[
+            InsightPoint(
+                pantry_id=row["id"],
+                pantry_name=row["name"],
+                neighborhood=row["neighborhood"],
+                metric=row["metric"],
+            )
+            for row in longest_wait
+        ],
+        lowest_satisfaction=[
+            InsightPoint(
+                pantry_id=row["id"],
+                pantry_name=row["name"],
+                neighborhood=row["neighborhood"],
+                metric=row["metric"],
+            )
+            for row in lowest_satisfaction
+        ],
+        highest_unmet_demand=[
+            InsightPoint(
+                pantry_id=row["id"],
+                pantry_name=row["name"],
+                neighborhood=row["neighborhood"],
+                metric=row["metric"],
+            )
+            for row in unmet_demand
+        ],
+    )
+
+
 @app.get("/pantries/{pantry_id}/supply", response_model=SupplyProfileOut)
 async def pantry_supply(request: Request, pantry_id: str) -> SupplyProfileOut:
     query = """
@@ -413,6 +538,88 @@ async def pantry_supply(request: Request, pantry_id: str) -> SupplyProfileOut:
     if not row:
         raise HTTPException(status_code=404, detail="Supply profile not found")
     return SupplyProfileOut(**dict(row))
+
+
+@app.post("/photos", response_model=PhotoOut)
+async def create_photo(request: Request, payload: PhotoCreate) -> PhotoOut:
+    query = """
+        insert into pantry_photos (pantry_id, image_url, captured_at)
+        values ($1, $2, $3)
+        returning *
+    """
+    async with request.app.state.pool.acquire() as conn:
+        row = await conn.fetchrow(
+            query,
+            payload.pantry_id,
+            payload.image_url,
+            payload.captured_at,
+        )
+    return PhotoOut(
+        id=row["id"],
+        pantry_id=row["pantry_id"],
+        image_url=row["image_url"],
+        captured_at=row["captured_at"],
+        raw_tags=row["raw_tags"],
+        normalized_tags=row["normalized_tags"],
+        created_at=row["created_at"],
+    )
+
+
+@app.get("/pantries/{pantry_id}/photos", response_model=list[PhotoOut])
+async def list_photos(request: Request, pantry_id: str) -> list[PhotoOut]:
+    query = """
+        select *
+        from pantry_photos
+        where pantry_id = $1
+        order by created_at desc
+    """
+    async with request.app.state.pool.acquire() as conn:
+        rows = await conn.fetch(query, pantry_id)
+    return [
+        PhotoOut(
+            id=row["id"],
+            pantry_id=row["pantry_id"],
+            image_url=row["image_url"],
+            captured_at=row["captured_at"],
+            raw_tags=row["raw_tags"],
+            normalized_tags=row["normalized_tags"],
+            created_at=row["created_at"],
+        )
+        for row in rows
+    ]
+
+
+@app.post("/photos/{photo_id}/classify", response_model=PhotoOut)
+async def classify_photo(
+    request: Request,
+    photo_id: str,
+    payload: PhotoClassify,
+) -> PhotoOut:
+    query = """
+        update pantry_photos
+        set raw_tags = $1,
+            normalized_tags = $2
+        where id = $3
+        returning *
+    """
+    async with request.app.state.pool.acquire() as conn:
+        row = await conn.fetchrow(
+            query,
+            payload.raw_tags,
+            payload.normalized_tags,
+            photo_id,
+        )
+    if not row:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    return PhotoOut(
+        id=row["id"],
+        pantry_id=row["pantry_id"],
+        image_url=row["image_url"],
+        captured_at=row["captured_at"],
+        raw_tags=row["raw_tags"],
+        normalized_tags=row["normalized_tags"],
+        created_at=row["created_at"],
+    )
 
 
 @app.get("/datasets", response_model=list[DatasetOut])
@@ -453,6 +660,31 @@ async def get_dataset(
         dataset=DatasetOut(**dict(dataset)),
         metrics=[DatasetMetric(**dict(row)) for row in metrics],
     )
+
+
+@app.get("/datasets/overlay", response_model=list[DatasetOverlayPoint])
+async def dataset_overlay(
+    request: Request,
+    dataset_id: str,
+) -> list[DatasetOverlayPoint]:
+    query = """
+        select
+            p.id as pantry_id,
+            p.name as pantry_name,
+            p.neighborhood,
+            p.zip_code,
+            p.latitude,
+            p.longitude,
+            m.metrics
+        from pantries p
+        join public_dataset_metrics m
+            on p.zip_code = m.geo_unit_id
+        where m.dataset_id = $1
+        order by p.name
+    """
+    async with request.app.state.pool.acquire() as conn:
+        rows = await conn.fetch(query, dataset_id)
+    return [DatasetOverlayPoint(**dict(row)) for row in rows]
 
 
 @app.post("/reports", response_model=ReportOut)

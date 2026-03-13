@@ -1,8 +1,8 @@
-# Backend Design Doc (Full Implementation)
+# Backend Design Doc (Aligned with PRD)
 
 ## Summary
-This document describes the full backend implementation for the Food Access Insights Platform.
-It is based on the PRD and the current `Pantry_Dashboard` frontend, which currently renders a cultural
+This document describes the backend implementation for the Lemontree Partner Intelligence Platform.
+It is aligned to `PRD.md` and the current `Pantry_Dashboard` frontend, which currently renders a cultural
 food match dashboard from a local JSON file (`src/data/classifierOutput.json`) and will be wired to
 backend APIs over time.
 
@@ -10,21 +10,26 @@ The backend supports:
 1. End‑user feedback collection (structured fields + free text).
 2. Data cleaning, normalization, and categorization.
 3. Analytics, trend detection, and dashboard data APIs.
-4. Integration of public datasets for contextual insights.
-5. Reporting and sharing workflows.
+4. AI food image classification ingestion + supply profiling.
+5. Integration of public datasets for contextual insights.
+6. Reporting and sharing workflows.
+7. Interactive resource map data (locations, schedules, open status).
 
 ## Goals
 1. Provide a reliable, secure API surface for feedback collection and retrieval.
-2. Support filtering by location, timeframe, and resource type.
+2. Support filtering by location (neighborhood, ZIP), timeframe, and resource type.
 3. Expose analytics for dashboards (counts, averages, distributions, trends).
 4. Integrate public datasets for context (demographics, health, poverty, food deserts).
-5. Enable reporting and export of insights.
-6. Maintain a solid developer experience and deployment posture.
+5. Enable AI food image classification ingestion + tag storage.
+6. Provide guided insights endpoints that answer common partner questions.
+7. Enable reporting and export of insights.
+8. Maintain a solid developer experience and deployment posture.
 
 ## Non-Goals (Phase 1)
 1. Real‑time streaming analytics (near‑real‑time is acceptable).
 2. Full BI platform capabilities (ad‑hoc SQL explorer, custom chart builder).
 3. Fully automated anomaly detection with alerting (future enhancement).
+4. Full workflow tooling for partner case management.
 
 ## Current Frontend Context
 `Pantry_Dashboard` currently:
@@ -35,6 +40,7 @@ The backend supports:
 Backend alignment strategy:
 1. Define endpoints that can supply equivalent JSON shapes to replace the static file.
 2. Move calculations server‑side once data pipelines and schema stabilize.
+3. Add map‑ready endpoints for resources + demographic overlays.
 
 ## Proposed Architecture
 **API**: FastAPI app in `backend/`  
@@ -48,12 +54,16 @@ Backend alignment strategy:
 - Text categorization pipeline for free‑text feedback.
 
 ## Data Model (Core)
-### 1) Pantry
+### 1) Resource (Pantry / Soup Kitchen)
 - `id` (uuid)
 - `name` (text)
 - `neighborhood` (text)
 - `address` (text, nullable)
+- `zip_code` (text, nullable)
 - `latitude`, `longitude` (float, nullable)
+- `resource_type` (enum: pantry, soup_kitchen, other)
+- `schedule` (jsonb: hours by day)
+- `is_open_now` (bool, derived or cached)
 - `created_at`, `updated_at`
 
 ### 2) Feedback
@@ -80,6 +90,14 @@ Backend alignment strategy:
 - `category_distribution` (jsonb)
 - `updated_at` (timestamp)
 
+### 4b) Photo + Classification Tags
+- `photo_id` (uuid)
+- `pantry_id` (uuid)
+- `image_url` (text)
+- `captured_at` (timestamp)
+- `raw_tags` (jsonb)
+- `normalized_tags` (jsonb)
+
 ### 5) Public Datasets
 - `dataset_id` (uuid)
 - `dataset_name` (text)
@@ -99,6 +117,13 @@ Backend alignment strategy:
 ### Health
 - `GET /health` → `{ status: "ok", db: "ok" }`
 
+### Resources (Map)
+- `GET /resources`
+  - Query params: `neighborhood`, `zip`, `resource_type`, `open_now`
+  - Returns list of resources with coordinates + schedule summary
+- `GET /resources/{id}`
+  - Resource details + schedule
+
 ### Feedback
 - `POST /feedback`
   - Body: fields above
@@ -116,6 +141,8 @@ Backend alignment strategy:
   - Returns time‑series metrics (ratings, wait times, issue counts)
 - `GET /analytics/heatmap`
   - Returns location‑based aggregates for map visualization
+- `GET /analytics/insights`
+  - Returns guided insight answers for common PRD questions
 
 ### Pantry Supply
 - `GET /pantries`
@@ -123,11 +150,21 @@ Backend alignment strategy:
 - `GET /pantries/{id}/supply`
   - Returns normalized supply profile (if ML pipeline integrated)
 
+### Photo Classification
+- `POST /photos`
+  - Upload or register a photo URL for classification
+- `GET /pantries/{id}/photos`
+  - List photos + classification tags
+- `POST /photos/{id}/classify`
+  - Trigger classification (async in production)
+
 ### Public Datasets
 - `GET /datasets`
   - List available public datasets
 - `GET /datasets/{id}`
   - Dataset metadata + metrics
+- `GET /datasets/overlay`
+  - Returns geo overlays joined to resource locations (map-ready)
 
 ### Reporting
 - `POST /reports`
@@ -143,6 +180,7 @@ Phase 1 (no UI changes):
 Phase 2:
 - Replace static JSON with `/analytics/*` and `/feedback` APIs.
 - Add filtering and map endpoints to support PRD requirements.
+- Add demographic overlays and guided insights endpoints.
 
 ## Data Processing Pipelines
 1. **Feedback ingestion**
@@ -154,6 +192,9 @@ Phase 2:
 3. **Supply profile generation**
    - `ai-classifier` → raw tags
    - `normalizer` → normalized taxonomy + supply distribution
+4. **Photo classification ingestion**
+   - Store photo metadata
+   - Persist raw tags + normalized tags
 4. **Public dataset ingestion**
    - Scheduled ETL into `public_datasets`
    - Join with pantry locations for contextual metrics.
@@ -180,11 +221,14 @@ Phase 2:
 1. MVP API + schema (already implemented).
 2. Add auth and RBAC.
 3. Add pipeline workers and public dataset ingestion.
-4. Extend analytics for trends, maps, and reporting.
-5. Replace static dashboard data with APIs.
+4. Add resource schedules + open status.
+5. Add photo upload/classification ingestion.
+6. Extend analytics for trends, maps, guided insights, and reporting.
+7. Replace static dashboard data with APIs.
 
 ## Open Questions
 1. Will feedback ingestion be direct from frontend or via other sources?
-2. What exact schema should represent pantry locations and neighborhoods?
+2. What exact schema should represent resource locations, schedules, and open status?
 3. Should the backend compute cultural match or leave it to frontend?
 4. Which public datasets are in scope for phase 1 ingestion?
+5. What is the initial photo ingestion flow (upload vs URL registration)?
