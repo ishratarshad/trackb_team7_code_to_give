@@ -1,6 +1,18 @@
 """Pydantic models for food normalization pipeline."""
 
+from typing import Optional
+
 from pydantic import BaseModel, Field
+
+
+class PantryMetadata(BaseModel):
+    """Location and naming metadata for a pantry."""
+
+    resource_name: Optional[str] = None
+    zip_code: Optional[str] = None
+    neighborhood_name: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 class NormalizedFood(BaseModel):
@@ -15,6 +27,7 @@ class SupplyProfile(BaseModel):
     """Full pantry supply profile output."""
 
     pantry_id: str
+    metadata: Optional[PantryMetadata] = None
     raw_tags: list[str]
     normalized_foods: list[NormalizedFood]
     category_distribution: dict[str, float]

@@ -1,5 +1,7 @@
 """Build supply profile from normalized foods."""
 
+from typing import Optional
+
 ALLOWED_CATEGORIES = frozenset(
     {"staples", "protein", "fruit", "vegetables", "dairy", "canned_or_processed", "grains"}
 )
@@ -11,6 +13,7 @@ def build_supply_profile(
     normalized_foods: list[dict],
     dietary_tags: list[str],
     cultural_tags: list[str],
+    metadata: Optional[dict] = None,
 ) -> dict:
     """
     Compute category distribution from unique normalized items and build full profile.
@@ -41,6 +44,7 @@ def build_supply_profile(
 
     return {
         "pantry_id": pantry_id,
+        "metadata": metadata,
         "raw_tags": raw_tags,
         "normalized_foods": normalized_foods,
         "category_distribution": category_distribution,
