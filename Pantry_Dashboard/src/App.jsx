@@ -1,114 +1,243 @@
+import { useState, useEffect } from "react";
+import {
+  getFoodPreferencesByZipCode,
+  calculateCulturalMatchScore
+} from "./lib/demographicsApi";
+
+import classifierData from "./data/classifierOutput.json";
 import CulturalMatchCard from "./components/CulturalMatchCard";
-import { calculateCulturalMatch, getMissingFoods } from "./utils/culturalMatch";
-import pantryData from "./data/pantryData.json";
 import "./App.css";
 
-
 function App() {
-  const pantries = pantryData.pantries;
 
-  // South Asian demographic foods (example - would come from demographics API later)
-  const demographicFoods = ["rice", "lentils", "chickpeas", "curry", "naan", "halal"];
+  const [demographicFoods, setDemographicFoods] = useState({});
 
-  const pantryScores = pantries.map((pantry) => {
-    // Normalize food names to lowercase for better matching
-    const normalizedFoods = pantry.foods.map(f => f.toLowerCase());
+  const images = classifierData.results || [];
 
-    return {
-      id: pantry.id,
-      name: pantry.name,
-      neighborhood: pantry.neighborhood,
-      zipCode: pantry.zipCode,
-      imageCount: pantry.imageCount,
-      totalFoods: pantry.foods.length,
-      score: calculateCulturalMatch(normalizedFoods, demographicFoods),
-      missingFoods: getMissingFoods(normalizedFoods, demographicFoods),
-      flags: pantry.flags
-    };
+  const totalImages = images.length;
+
+  useEffect(() => {
+
+    async function loadDemographics() {
+
+      try {
+
+        const prefs = await getFoodPreferencesByZipCode("10001");
+
+        setDemographicFoods({
+          "10001": prefs.foods || []
+        });
+
+      } catch (error) {
+
+        console.error("Demographics API failed:", error);
+
+      }
+
+    }
+
+    loadDemographics();
+
+  }, []);
+
+  function normalizeFood(food) {
+
+    const item = food.toLowerCase();
+
+    if (item.includes("rice")) return "rice";
+    if (item.includes("bean")) return "beans";
+    if (item.includes("lentil")) return "lentils";
+    if (item.includes("chickpea")) return "chickpeas";
+    if (item.includes("banana")) return "banana";
+    if (item.includes("pasta")) return "pasta";
+    if (item.includes("bread")) return "bread";
+    if (item.includes("apple")) return "apple";
+    if (item.includes("milk")) return "milk";
+
+    return item;
+
+  }
+
+  function extractNeighborhood(pantryName) {
+
+    const match = pantryName.match(/\((.*?)\)/);
+
+    return match ? match[1] : "Unknown";
+
+  }
+
+  const pantryMap = {};
+
+  images.forEach(img => {
+
+    const pantry = img.source?.resourceName || "Unknown Pantry";
+    const neighborhood = img.source?.neighborhoodName || "Unknown Area";
+
+    const key = `${pantry} (${neighborhood})`;
+
+    if (!pantryMap[key]) {
+      pantryMap[key] = [];
+    }
+
+    img.rawTags.forEach(tag => {
+      pantryMap[key].push(tag.label);
+    });
+
   });
 
-  const totalPantries = pantryScores.length;
+  const pantryResults = Object.entries(pantryMap).map(([pantry, foods]) => {
 
-  const averageScore =
-    pantryScores.reduce((sum, p) => sum + p.score, 0) / totalPantries;
+    const normalizedFoods = foods.map(normalizeFood);
+    const uniqueFoods = [...new Set(normalizedFoods)];
 
-  const lowMatchCount =
-    pantryScores.filter((p) => p.score < 50).length;
+    const zipCode = "10001";
 
+    const culturalFoods = demographicFoods[zipCode] || [];
 
-return (
-  <div className="dashboard">
-    <h1>Food Pantry Cultural Match Dashboard</h1>
-    <p className="subtitle">AI-Classified Food Analysis from {pantryData.stats.totalImages} Food Photos</p>
+    const score = culturalFoods.length
+      ? calculateCulturalMatchScore(uniqueFoods, culturalFoods)
+      : 0;
 
-    <div className="summary-panel">
-      <div className="summary-card">
-        <h3>Pantries Analyzed</h3>
-        <p>{totalPantries}</p>
+    const missing = culturalFoods.filter(
+      food => !uniqueFoods.includes(food)
+    );
+
+    const foodCounts = {};
+
+    normalizedFoods.forEach(food => {
+      foodCounts[food] = (foodCounts[food] || 0) + 1;
+    });
+
+    const topFoods = Object.entries(foodCounts)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0,3);
+
+    return {
+      pantry,
+      score,
+      missing,
+      topFoods
+    };
+
+  });
+
+  const neighborhoodScores = {};
+
+  pantryResults.forEach((p) => {
+
+    const neighborhood = extractNeighborhood(p.pantry);
+
+    if (!neighborhoodScores[neighborhood]) {
+
+      neighborhoodScores[neighborhood] = {
+        totalScore: 0,
+        count: 0
+      };
+
+    }
+
+    neighborhoodScores[neighborhood].totalScore += p.score;
+    neighborhoodScores[neighborhood].count += 1;
+
+  });
+
+  const neighborhoodAverages = Object.entries(neighborhoodScores).map(
+    ([name, data]) => ({
+
+      name,
+
+      avgScore: data.count
+        ? data.totalScore / data.count
+        : 0
+
+    })
+  );
+
+  neighborhoodAverages.sort((a,b)=> a.avgScore - b.avgScore);
+
+  return (
+
+    <div className="dashboard">
+
+      <h1>NYC Pantry Dashboard</h1>
+      <p className="subtitle">Cultural Food Match Analysis</p>
+
+      <div className="summary-panel">
+
+        <div className="summary-card">
+          <h3>Images Analyzed</h3>
+          <p>{totalImages}</p>
+        </div>
+
+        <div className="summary-card">
+          <h3>Pantries Detected</h3>
+          <p>{pantryResults.length}</p>
+        </div>
+
       </div>
 
-      <div className="summary-card">
-        <h3>Average Cultural Match</h3>
-        <p>{averageScore.toFixed(1)}%</p>
+      <div className="pantry-card">
+
+        <h3>Neighborhood Cultural Food Access</h3>
+
+        <ul>
+
+          {neighborhoodAverages.slice(0,10).map((n, i) => (
+
+            <li key={i}>
+              {n.name} — {n.avgScore.toFixed(1)}%
+            </li>
+
+          ))}
+
+        </ul>
+
       </div>
 
-      <div className="summary-card">
-        <h3>Low Match Pantries</h3>
-        <p>{lowMatchCount}</p>
-      </div>
+      <div className="pantry-grid">
 
-      <div className="summary-card">
-        <h3>Total Images Classified</h3>
-        <p>{pantryData.stats.totalImages}</p>
-      </div>
-    </div>
+        {pantryResults.map((pantry, index) => (
 
-    <div className="pantry-grid">
-      {pantryScores.slice(0, 50).map((pantry) => (
-        <div key={pantry.id} className="pantry-card">
-          <h3>{pantry.name}</h3>
-          <p style={{ fontSize: '0.9em', color: '#666', marginTop: '5px' }}>
-            {pantry.neighborhood}, {pantry.zipCode}
-          </p>
-          <p style={{ fontSize: '0.85em', color: '#999' }}>
-            {pantry.imageCount} photos • {pantry.totalFoods} food items
-          </p>
+          <div key={index} className="pantry-card">
 
-          <CulturalMatchCard score={pantry.score} />
+            <h3>{pantry.pantry}</h3>
 
-          <div style={{ marginTop: '10px' }}>
-            <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>Food Inventory:</p>
-            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-              {pantry.flags.hasFreshProduce && <span className="badge">🥬 Produce</span>}
-              {pantry.flags.hasMeat && <span className="badge">🍗 Meat</span>}
-              {pantry.flags.hasDairy && <span className="badge">🥛 Dairy</span>}
-              {pantry.flags.hasGrains && <span className="badge">🌾 Grains</span>}
-              {pantry.flags.hasCanned && <span className="badge">🥫 Canned</span>}
-            </div>
+            <CulturalMatchCard score={pantry.score} />
+
+            <p style={{ fontWeight: "bold", marginTop: "10px" }}>
+              Missing culturally relevant foods:
+            </p>
+
+            <ul>
+
+              {pantry.missing.map((food, i) => (
+                <li key={i}>{food}</li>
+              ))}
+
+            </ul>
+
+            <p style={{ fontWeight: "bold", marginTop: "10px" }}>
+              Top Foods Detected
+            </p>
+
+            <ul>
+
+              {pantry.topFoods.map(([food,count],i)=>(
+                <li key={i}>{food} ({count})</li>
+              ))}
+
+            </ul>
+
           </div>
 
-          {pantry.missingFoods.length > 0 && (
-            <div style={{ marginTop: '10px' }}>
-              <p style={{ fontWeight: 'bold', fontSize: '0.9em' }}>
-                Missing cultural foods:
-              </p>
-              <ul style={{ fontSize: '0.85em', marginTop: '5px' }}>
-                {pantry.missingFoods.map((food, i) => (
-                  <li key={i}>{food}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      ))}
+        ))}
+
+      </div>
+
     </div>
 
-    <p style={{ textAlign: 'center', color: '#666', marginTop: '30px', fontSize: '0.9em' }}>
-      Showing first 50 of {totalPantries} pantries •
-      Data generated: {new Date(pantryData.generatedAt).toLocaleString()}
-    </p>
-  </div>
-);
+  );
+
 }
 
 export default App;
