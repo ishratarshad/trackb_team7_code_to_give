@@ -72,3 +72,43 @@ body {
   color: #374151;
   border: 1px solid #e5e7eb;
 }
+
+.filter-panel {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  background: #f8f9fc;
+  border: 1px solid #e3e6f0;
+
+  padding: 15px 20px;
+  border-radius: 10px;
+
+  margin: 20px 0;
+}
+
+.filter-panel label {
+  font-weight: 600;
+  margin-right: 5px;
+}
+
+.filter-panel select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+
+  font-size: 14px;
+}
+
+.neighborhood-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.neighborhood-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}

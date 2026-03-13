@@ -1,15 +1,10 @@
-export function calculateCulturalMatch(foodTags, demographicFoods) {
-  let matches = 0;
+export function calculateCulturalMatch(pantryFoods, culturalFoods) {
 
-  foodTags.forEach(food => {
-    if (demographicFoods.includes(food)) {
-      matches++;
-    }
-  });
+  if (!culturalFoods || culturalFoods.length === 0) return 0;
 
-  return Math.round((matches / foodTags.length) * 100);
-}
+  const matches = culturalFoods.filter(food =>
+    pantryFoods.includes(food)
+  );
 
-export function getMissingFoods(pantryFoods, demographicFoods) {
-  return demographicFoods.filter(food => !pantryFoods.includes(food));
+  return Math.round((matches.length / culturalFoods.length) * 100);
 }
