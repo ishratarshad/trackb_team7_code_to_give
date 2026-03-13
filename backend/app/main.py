@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import create_pool, db_health_check
+from app.cleaning import clean_feedback_payload
 from app.models import (
     AnalyticsSummary,
     AnalyticsInsights,
@@ -212,6 +213,47 @@ async def get_pantry(request: Request, pantry_id: str) -> PantryOut:
 
 @app.post("/feedback", response_model=FeedbackOut)
 async def create_feedback(request: Request, payload: FeedbackCreate) -> FeedbackOut:
+    cleaned = clean_feedback_payload(payload)
+    async with request.app.state.pool.acquire() as conn:
+        pantry = await conn.fetchrow(
+            "select name, neighborhood from pantries where id = $1",
+            cleaned["pantry_id"],
+        )
+        if not pantry:
+            raise HTTPException(status_code=400, detail="Pantry not found")
+
+        dedup_minutes = int(os.getenv("FEEDBACK_DEDUP_MINUTES", "5"))
+        dedup_query = """
+            select *
+            from feedback
+            where pantry_id = $1
+              and rating = $2
+              and resource_type = $3
+              and coalesce(wait_time_min, -1) = coalesce($4, -1)
+              and coalesce(lower(comment), '') = coalesce(lower($5), '')
+              and coalesce(lower(items_unavailable), '') = coalesce(lower($6), '')
+              and created_at >= ($7 - ($8 || ' minutes')::interval)
+            order by created_at desc
+            limit 1
+        """
+        duplicate = await conn.fetchrow(
+            dedup_query,
+            cleaned["pantry_id"],
+            cleaned["rating"],
+            cleaned["resource_type"],
+            cleaned["wait_time_min"],
+            cleaned["comment"],
+            cleaned["items_unavailable"],
+            cleaned["created_at"],
+            dedup_minutes,
+        )
+        if duplicate:
+            return FeedbackOut(
+                **dict(duplicate),
+                pantry_name=pantry["name"],
+                pantry_neighborhood=pantry["neighborhood"],
+            )
+
     query = """
         insert into feedback (
             pantry_id,
@@ -227,25 +269,18 @@ async def create_feedback(request: Request, payload: FeedbackCreate) -> Feedback
         values ($1,$2,$3,$4,$5,$6,$7,$8, coalesce($9, now()))
         returning *
     """
-    async with request.app.state.pool.acquire() as conn:
         row = await conn.fetchrow(
             query,
-            payload.pantry_id,
-            payload.rating,
-            payload.wait_time_min,
-            payload.resource_type,
-            payload.items_unavailable,
-            payload.comment,
-            payload.issue_categories,
-            payload.raw_payload,
-            payload.created_at,
+            cleaned["pantry_id"],
+            cleaned["rating"],
+            cleaned["wait_time_min"],
+            cleaned["resource_type"],
+            cleaned["items_unavailable"],
+            cleaned["comment"],
+            cleaned["issue_categories"],
+            cleaned["raw_payload"],
+            cleaned["created_at"],
         )
-        pantry = await conn.fetchrow(
-            "select name, neighborhood from pantries where id = $1",
-            payload.pantry_id,
-        )
-    if not pantry:
-        raise HTTPException(status_code=400, detail="Pantry not found")
     return FeedbackOut(
         **dict(row),
         pantry_name=pantry["name"],

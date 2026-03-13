@@ -3,17 +3,18 @@
 ## Summary
 This document describes the backend implementation for the Lemontree Partner Intelligence Platform.
 It is aligned to `PRD.md` and the current `Pantry_Dashboard` frontend, which currently renders a cultural
-food match dashboard from a local JSON file (`src/data/classifierOutput.json`) and will be wired to
+food match dashboard from a local JSON file (`src/data/supply_profiles.json`) and will be wired to
 backend APIs over time.
 
 The backend supports:
 1. End‑user feedback collection (structured fields + free text).
-2. Data cleaning, normalization, and categorization.
-3. Analytics, trend detection, and dashboard data APIs.
-4. AI food image classification ingestion + supply profiling.
-5. Integration of public datasets for contextual insights.
-6. Reporting and sharing workflows.
-7. Interactive resource map data (locations, schedules, open status).
+2. Data cleaning, standardization, and deduplication pipelines (planned; partial in normalizer).
+3. Data ingestion pipelines for external sources (planned; not yet implemented).
+4. Analytics, trend detection, and dashboard data APIs.
+5. AI food image classification ingestion + supply profiling.
+6. Integration of public datasets for contextual insights.
+7. Reporting and sharing workflows.
+8. Interactive resource map data (locations, schedules, open status).
 
 ## Goals
 1. Provide a reliable, secure API surface for feedback collection and retrieval.
@@ -33,7 +34,7 @@ The backend supports:
 
 ## Current Frontend Context
 `Pantry_Dashboard` currently:
-- Reads from static JSON (`classifierOutput.json`).
+- Reads from static JSON (`src/data/supply_profiles.json`).
 - Computes cultural match scores and missing foods client-side.
 - Has no API calls.
 
@@ -45,9 +46,7 @@ Backend alignment strategy:
 ## Proposed Architecture
 **API**: FastAPI app in `backend/`  
 **Database**: Supabase Postgres (primary OLTP store)  
-**Storage**: S3‑compatible (images, exports, reports)  
-**Compute**: Background workers for ML + ETL (separate process)  
-**Deployment**: API + worker services (can start as single service)  
+**Deployment**: API service (single service to start)  
 **ML Pipelines**:
 - `ai-classifier/` produces raw tags from pantry images.
 - `normalizer/` normalizes tags and outputs supply profiles.
@@ -61,7 +60,7 @@ Backend alignment strategy:
 - `address` (text, nullable)
 - `zip_code` (text, nullable)
 - `latitude`, `longitude` (float, nullable)
-- `resource_type` (enum: pantry, soup_kitchen, other)
+- `resource_kind` (enum: pantry, soup_kitchen, other)
 - `schedule` (jsonb: hours by day)
 - `is_open_now` (bool, derived or cached)
 - `created_at`, `updated_at`
@@ -72,7 +71,7 @@ Backend alignment strategy:
 - `pantry_id` (uuid)
 - `rating` (int 1-5)
 - `wait_time_min` (int, nullable)
-- `resource_type` (enum)
+- `resource_type` (enum: produce, protein, dairy, grains, canned, packaged, beverages, condiments, snacks, other)
 - `items_unavailable` (text, nullable)
 - `comment` (text, nullable)
 - `issue_categories` (jsonb, nullable)
@@ -195,7 +194,7 @@ Phase 2:
 4. **Photo classification ingestion**
    - Store photo metadata
    - Persist raw tags + normalized tags
-4. **Public dataset ingestion**
+5. **Public dataset ingestion**
    - Scheduled ETL into `public_datasets`
    - Join with pantry locations for contextual metrics.
 

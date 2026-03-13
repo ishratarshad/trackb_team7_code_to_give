@@ -62,3 +62,27 @@ cd backend
 source .venv/bin/activate
 python -m pytest
 ```
+
+## External Data Ingestion
+
+Run one-off ingestion (requires `DATABASE_URL`):
+
+```bash
+cd backend
+source .venv/bin/activate
+python -m ingest.run_ingestion --lemontree
+python -m ingest.run_ingestion --nyc
+```
+
+Run on an interval (minutes):
+
+```bash
+python -m ingest.run_ingestion --interval-min 1440
+```
+
+Optional env vars:
+- `LEMONTREE_BASE_URL`
+- `LEMONTREE_TAKE`
+- `NYC_OPEN_DATA_BASE`
+- `NYC_DEMOGRAPHICS_DATASET`
+- `NYC_OPEN_DATA_LIMIT`
