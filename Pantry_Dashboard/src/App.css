@@ -62,3 +62,13 @@ body {
   font-weight: bold;
   margin: 5px 0 0 0;
 }
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  font-size: 0.8em;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
