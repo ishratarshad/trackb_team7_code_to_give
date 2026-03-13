@@ -1,0 +1,19 @@
+{
+  "name": "lemontree-food-classifier",
+  "version": "1.0.0",
+  "description": "Layer 1 Vision Tagging for Lemontree food pantry images",
+  "private": true,
+  "scripts": {
+    "classify": "tsx scripts/classify-batch.ts",
+    "classify:all": "tsx scripts/classify-batch.ts --count 500 --output data/layer1-full.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "dotenv": "^17.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
