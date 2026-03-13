@@ -71,8 +71,11 @@ def test_extract_labels_keeps_specific_items():
 @patch("normalizer.ingest.normalize_tags")
 def test_process_export_groups_by_pantry(mock_normalize):
     """Pantries with multiple images are merged into one profile each."""
-    def fake_normalize(raw_tags, pantry_id):
-        return {**MOCK_PROFILE, "pantry_id": pantry_id, "raw_tags": raw_tags}
+    def fake_normalize(raw_tags, pantry_id, metadata=None):
+        out = {**MOCK_PROFILE, "pantry_id": pantry_id, "raw_tags": raw_tags}
+        if metadata:
+            out["metadata"] = metadata.model_dump() if hasattr(metadata, "model_dump") else metadata
+        return out
 
     mock_normalize.side_effect = fake_normalize
 
@@ -100,8 +103,11 @@ def test_process_export_groups_by_pantry(mock_normalize):
 def test_batch_endpoint(mock_normalize):
     """POST /normalize/batch with sample data returns profiles for all unique resourceIds."""
 
-    def fake_normalize(raw_tags, pantry_id):
-        return {**MOCK_PROFILE, "pantry_id": pantry_id, "raw_tags": raw_tags}
+    def fake_normalize(raw_tags, pantry_id, metadata=None):
+        out = {**MOCK_PROFILE, "pantry_id": pantry_id, "raw_tags": raw_tags}
+        if metadata:
+            out["metadata"] = metadata.model_dump() if hasattr(metadata, "model_dump") else metadata
+        return out
 
     mock_normalize.side_effect = fake_normalize
 
@@ -119,3 +125,7 @@ def test_batch_endpoint(mock_normalize):
     assert len(body["profiles"]) == 3
     pantry_ids = {p["pantry_id"] for p in body["profiles"]}
     assert pantry_ids == {"pantry_alpha", "pantry_beta", "pantry_gamma"}
+    # Metadata should be present when source has it
+    alpha = next(p for p in body["profiles"] if p["pantry_id"] == "pantry_alpha")
+    assert "metadata" in alpha
+    assert alpha.get("metadata", {}).get("resource_name") == "Holy Communion Lutheran Church Food Kitchen"

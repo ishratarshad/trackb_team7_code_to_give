@@ -4,7 +4,7 @@ import json
 import os
 
 import google.generativeai as genai
-
+print("Using Gemini API...")
 
 def _get_model():
     """Get Gemini model (2.0 Flash preferred, fallback to 1.5 Flash)."""
@@ -13,7 +13,7 @@ def _get_model():
         raise ValueError("GEMINI_API_KEY environment variable is not set")
     genai.configure(api_key=api_key)
 
-    for model_name in ("gemini-2.0-flash", "gemini-1.5-flash"):
+    for model_name in ("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"):
         try:
             return genai.GenerativeModel(model_name)
         except Exception:
