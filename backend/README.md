@@ -32,3 +32,33 @@ python3 -m uvicorn app.main:app --reload
 - `GET /health`
   - Returns `{"status":"ok","db":"ok"}` when Supabase is reachable.
   - Returns `{"status":"degraded","db":"error",...}` on failure.
+
+## MVP Endpoints
+
+- `GET /health` — health + DB check
+- `POST /pantries` — create a pantry
+- `GET /pantries` — list pantries
+- `GET /pantries/{pantry_id}` — pantry details
+- `POST /feedback` — create a feedback entry
+- `GET /feedback` — list feedback with optional filters
+- `GET /analytics/summary` — basic counts and averages
+- `GET /analytics/issues` — issue counts
+- `GET /analytics/trends` — time‑series metrics
+- `GET /analytics/heatmap` — map aggregates
+- `GET /pantries/{pantry_id}/supply` — normalized supply profile
+- `GET /datasets` — list public datasets
+- `GET /datasets/{dataset_id}` — dataset detail + metrics
+- `POST /reports` — generate a report
+- `GET /reports/{report_id}` — fetch report metadata
+
+## Database Schema
+
+See `backend/db/schema.sql` for the minimal tables and indexes.
+
+## Tests
+
+```bash
+cd backend
+source .venv/bin/activate
+python -m pytest
+```
