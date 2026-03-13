@@ -1,0 +1,125 @@
+{
+  "exportedAt": "2025-03-13T12:00:00Z",
+  "totalImages": 5,
+  "results": [
+    {
+      "imageId": "img001",
+      "source": {
+        "resourceId": "pantry_alpha",
+        "resourceName": "Holy Communion Lutheran Church Food Kitchen",
+        "zipCode": "08089",
+        "neighborhoodName": "Chesilhurst",
+        "latitude": 39.7223927,
+        "longitude": -74.8895494
+      },
+      "rawTags": [
+        { "label": "Cheese Club macaroni and cheese", "confidence": 0.95, "category": "packaged" },
+        { "label": "Jack & the Beanstalk long grain white rice", "confidence": 0.95, "category": "grains" },
+        { "label": "canned goods", "confidence": 0.8, "category": "canned" },
+        { "label": "low confidence item", "confidence": 0.5, "category": "other" }
+      ],
+      "flags": {
+        "hasFreshProduce": false,
+        "hasMeat": false,
+        "hasDairy": true,
+        "hasGrains": true,
+        "hasCanned": true,
+        "hasHalal": false,
+        "hasKosher": false
+      }
+    },
+    {
+      "imageId": "img002",
+      "source": {
+        "resourceId": "pantry_alpha",
+        "resourceName": "Holy Communion Lutheran Church Food Kitchen",
+        "zipCode": "08089",
+        "latitude": 39.7223927,
+        "longitude": -74.8895494
+      },
+      "rawTags": [
+        { "label": "Campbell's Chicken Noodle soup", "confidence": 0.95, "category": "canned" },
+        { "label": "Del Monte green beans", "confidence": 0.9, "category": "canned" },
+        { "label": "packaged goods", "confidence": 0.85, "category": "packaged" }
+      ],
+      "flags": {
+        "hasFreshProduce": false,
+        "hasMeat": true,
+        "hasDairy": false,
+        "hasGrains": false,
+        "hasCanned": true,
+        "hasHalal": false,
+        "hasKosher": false
+      }
+    },
+    {
+      "imageId": "img003",
+      "source": {
+        "resourceId": "pantry_beta",
+        "resourceName": "Second Pantry",
+        "zipCode": "08090",
+        "latitude": 39.73,
+        "longitude": -74.88
+      },
+      "rawTags": [
+        { "label": "Great Value lentils", "confidence": 0.92, "category": "grains" },
+        { "label": "store brand black beans", "confidence": 0.88, "category": "canned" }
+      ],
+      "flags": {
+        "hasFreshProduce": false,
+        "hasMeat": false,
+        "hasDairy": false,
+        "hasGrains": true,
+        "hasCanned": true,
+        "hasHalal": false,
+        "hasKosher": false
+      }
+    },
+    {
+      "imageId": "img004",
+      "source": {
+        "resourceId": "pantry_beta",
+        "resourceName": "Second Pantry",
+        "zipCode": "08090",
+        "latitude": 39.73,
+        "longitude": -74.88
+      },
+      "rawTags": [
+        { "label": "banana", "confidence": 0.94, "category": "produce" },
+        { "label": "skip me confidence", "confidence": 0.65, "category": "other" }
+      ],
+      "flags": {
+        "hasFreshProduce": true,
+        "hasMeat": false,
+        "hasDairy": false,
+        "hasGrains": false,
+        "hasCanned": false,
+        "hasHalal": false,
+        "hasKosher": false
+      }
+    },
+    {
+      "imageId": "img005",
+      "source": {
+        "resourceId": "pantry_gamma",
+        "resourceName": "Third Pantry",
+        "zipCode": "08091",
+        "latitude": 39.74,
+        "longitude": -74.87
+      },
+      "rawTags": [
+        { "label": "vegetable oil", "confidence": 0.9, "category": "staples" },
+        { "label": "various", "confidence": 0.9, "category": "other" }
+      ],
+      "flags": {
+        "hasFreshProduce": false,
+        "hasMeat": false,
+        "hasDairy": false,
+        "hasGrains": false,
+        "hasCanned": false,
+        "hasHalal": false,
+        "hasKosher": false
+      }
+    }
+  ]
+}

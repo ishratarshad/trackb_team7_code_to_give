@@ -27,3 +27,9 @@ class NormalizeRequest(BaseModel):
 
     pantry_id: str
     raw_tags: list[str]
+
+
+class BatchNormalizeRequest(BaseModel):
+    """Request body for POST /normalize/batch."""
+
+    results: list[dict]

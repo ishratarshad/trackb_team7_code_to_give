@@ -1,0 +1,89 @@
+[
+  {
+    "pantry_id": "pantry_alpha",
+    "raw_tags": [
+      "Cheese Club macaroni and cheese",
+      "Jack & the Beanstalk long grain white rice",
+      "Campbell's Chicken Noodle soup",
+      "Del Monte green beans"
+    ],
+    "normalized_foods": [
+      {
+        "original_tag": "Cheese Club macaroni and cheese",
+        "normalized": "macaroni and cheese",
+        "category": "canned_or_processed"
+      },
+      {
+        "original_tag": "Jack & the Beanstalk long grain white rice",
+        "normalized": "rice",
+        "category": "staples"
+      },
+      {
+        "original_tag": "Campbell's Chicken Noodle soup",
+        "normalized": "chicken noodle soup",
+        "category": "canned_or_processed"
+      },
+      {
+        "original_tag": "Del Monte green beans",
+        "normalized": "green beans",
+        "category": "vegetables"
+      }
+    ],
+    "category_distribution": {
+      "canned_or_processed": 50.0,
+      "staples": 25.0,
+      "vegetables": 25.0
+    },
+    "dietary_tags": [],
+    "cultural_tags": []
+  },
+  {
+    "pantry_id": "pantry_beta",
+    "raw_tags": [
+      "Great Value lentils",
+      "store brand black beans",
+      "banana"
+    ],
+    "normalized_foods": [
+      {
+        "original_tag": "Great Value lentils",
+        "normalized": "lentils",
+        "category": "protein"
+      },
+      {
+        "original_tag": "store brand black beans",
+        "normalized": "beans",
+        "category": "protein"
+      },
+      {
+        "original_tag": "banana",
+        "normalized": "banana",
+        "category": "fruit"
+      }
+    ],
+    "category_distribution": {
+      "protein": 66.7,
+      "fruit": 33.3
+    },
+    "dietary_tags": [],
+    "cultural_tags": []
+  },
+  {
+    "pantry_id": "pantry_gamma",
+    "raw_tags": [
+      "vegetable oil"
+    ],
+    "normalized_foods": [
+      {
+        "original_tag": "vegetable oil",
+        "normalized": "oil",
+        "category": "staples"
+      }
+    ],
+    "category_distribution": {
+      "staples": 100.0
+    },
+    "dietary_tags": [],
+    "cultural_tags": []
+  }
+]

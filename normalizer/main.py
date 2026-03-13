@@ -9,7 +9,8 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from normalizer.models import NormalizeRequest, SupplyProfile
+from normalizer.ingest import process_results_to_profiles
+from normalizer.models import BatchNormalizeRequest, NormalizeRequest, SupplyProfile
 from normalizer.normalize import normalize_tags
 
 
@@ -53,3 +54,13 @@ def normalize(request: NormalizeRequest):
         pantry_id=request.pantry_id,
     )
     return profile
+
+
+@app.post("/normalize/batch")
+def normalize_batch(request: BatchNormalizeRequest):
+    """
+    Normalize Layer 1 results in batch. Groups by source.resourceId,
+    combines labels per pantry, returns profiles for all pantries.
+    """
+    profiles = process_results_to_profiles(request.results)
+    return {"pantries_processed": len(profiles), "profiles": profiles}

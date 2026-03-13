@@ -1,6 +1,7 @@
 """Main entry point for food tag normalization."""
 
 from normalizer.gemini_client import call_gemini_json
+from normalizer.mock_normalizer import is_mock_enabled, mock_normalize
 from normalizer.models import SupplyProfile
 from normalizer.profile import build_supply_profile
 from normalizer.prompt import build_prompt
@@ -26,12 +27,14 @@ def normalize_tags(raw_tags: list[str], pantry_id: str = "unknown") -> dict:
             cultural_tags=[],
         )
 
-    prompt = build_prompt(raw_tags)
-    result = call_gemini_json(prompt)
-
-    normalized_foods = result.get("normalized_foods", [])
-    dietary_tags = result.get("dietary_tags", [])
-    cultural_tags = result.get("cultural_tags", [])
+    if is_mock_enabled():
+        normalized_foods, dietary_tags, cultural_tags = mock_normalize(raw_tags)
+    else:
+        prompt = build_prompt(raw_tags)
+        result = call_gemini_json(prompt)
+        normalized_foods = result.get("normalized_foods", [])
+        dietary_tags = result.get("dietary_tags", [])
+        cultural_tags = result.get("cultural_tags", [])
 
     profile = build_supply_profile(
         pantry_id=pantry_id,

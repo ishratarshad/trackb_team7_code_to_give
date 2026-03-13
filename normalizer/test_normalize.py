@@ -48,8 +48,9 @@ MOCK_GEMINI_RESPONSE = {
 
 
 @patch("normalizer.normalize.call_gemini_json", return_value=MOCK_GEMINI_RESPONSE)
-def test_normalize_tags_deduplication_and_categories(mock_gemini):
+def test_normalize_tags_deduplication_and_categories(mock_gemini, monkeypatch):
     """Rice deduplicates; category_distribution uses unique normalized items."""
+    monkeypatch.delenv("USE_MOCK_NORMALIZER", raising=False)
     result = normalize_tags(SAMPLE_RAW_TAGS, pantry_id="pantry_test")
 
     # "rice" appears as normalized value; unique normalized items count rice once
@@ -76,8 +77,9 @@ def test_normalize_tags_deduplication_and_categories(mock_gemini):
 
 
 @patch("normalizer.normalize.call_gemini_json", return_value=MOCK_GEMINI_RESPONSE)
-def test_normalize_tags_schema(mock_gemini):
+def test_normalize_tags_schema(mock_gemini, monkeypatch):
     """Result has required schema fields."""
+    monkeypatch.delenv("USE_MOCK_NORMALIZER", raising=False)
     result = normalize_tags(SAMPLE_RAW_TAGS, pantry_id="pantry_test")
     assert "pantry_id" in result
     assert "raw_tags" in result
