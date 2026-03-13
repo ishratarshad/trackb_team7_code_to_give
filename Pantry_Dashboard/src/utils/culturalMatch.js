@@ -9,3 +9,7 @@ export function calculateCulturalMatch(foodTags, demographicFoods) {
 
   return Math.round((matches / foodTags.length) * 100);
 }
+
+export function getMissingFoods(pantryFoods, demographicFoods) {
+  return demographicFoods.filter(food => !pantryFoods.includes(food));
+}

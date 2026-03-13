@@ -1,0 +1,12 @@
+{
+  "pantries": [
+    {
+      "name": "Jackson Heights Pantry",
+      "foods": ["rice", "lentils", "canned tuna"]
+    },
+    {
+      "name": "Astoria Community Pantry",
+      "foods": ["bread", "pasta"]
+    }
+  ]
+}
