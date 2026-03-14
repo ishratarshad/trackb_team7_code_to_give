@@ -195,6 +195,7 @@ function getStatus(occurrences: ResourceOccurrence[], shifts: RawShift[] | null 
 }
 
 export function normalizeResource(raw: RawResource): Resource {
+  const resourceId = String(raw.id ?? '');
   const coordinates =
     toNumber(raw.latitude) !== null && toNumber(raw.longitude) !== null
       ? {

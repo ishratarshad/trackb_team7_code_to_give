@@ -1,17 +1,20 @@
 import Link from 'next/link';
-import { Globe, MapPin, Phone, Star } from 'lucide-react';
+import { Globe, MapPin, Phone, Star, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useMemo } from 'react';
 
 import { BookmarkButton } from '@/components/resources/bookmark-button';
 import { MetricsSection } from '@/components/resources/metrics-section';
 import { ResourceImage } from '@/components/resources/resource-image';
 import { ScheduleSection } from '@/components/resources/schedule-section';
+import { DemographicsPieChart } from '@/components/ui/demographics-pie-chart';
 import {
   compactNumber,
   formatDistanceMiles,
   formatPhoneNumber,
   formatRating,
 } from '@/lib/formatters';
+import { getDemographicsForCoordinates, getBoroughFromCoordinates } from '@/lib/demographics';
 import type { Resource, ReviewPayload } from '@/types/resources';
 
 export function ResourceDetailContent({
@@ -27,6 +30,16 @@ export function ResourceDetailContent({
   const showRating = typeof resource.ratingAverage === 'number';
   const showReviewCount = resource.reviewCount > 0;
   const showDistance = typeof resource.travelDistanceMiles === 'number';
+
+  // Get demographics data for this resource's neighborhood
+  const demographics = useMemo(() => {
+    return getDemographicsForCoordinates(resource.coordinates);
+  }, [resource.coordinates]);
+
+  const boroughName = useMemo(() => {
+    if (!resource.coordinates) return null;
+    return getBoroughFromCoordinates(resource.coordinates.latitude, resource.coordinates.longitude);
+  }, [resource.coordinates]);
 
   return (
     <div className="space-y-5">
@@ -141,6 +154,52 @@ export function ResourceDetailContent({
       </section>
 
       <ScheduleSection resource={resource} />
+
+      {/* Neighborhood Demographics Section */}
+      {demographics.pieData.length > 0 && (
+        <section className="panel-surface p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="h-5 w-5 text-moss" />
+            <h3 className="text-lg font-semibold text-ink">Neighborhood Demographics</h3>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-mist/50 p-4">
+              <DemographicsPieChart
+                data={demographics.pieData}
+                size={140}
+                showLegend={true}
+                title={boroughName ? `${boroughName} Area` : 'Local Area'}
+              />
+            </div>
+            <div className="space-y-3">
+              {demographics.tract?.poverty?.rate_pct !== undefined && (
+                <div className="rounded-xl bg-mist/50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate/60">Poverty Rate</p>
+                  <p className="text-xl font-bold text-ink">{demographics.tract.poverty.rate_pct.toFixed(1)}%</p>
+                </div>
+              )}
+              {(demographics.tract?.snap?.rate_pct !== undefined || demographics.tract?.snap?.households_pct !== undefined) && (
+                <div className="rounded-xl bg-mist/50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate/60">SNAP Households</p>
+                  <p className="text-xl font-bold text-ink">{(demographics.tract.snap.rate_pct ?? demographics.tract.snap.households_pct ?? 0).toFixed(1)}%</p>
+                </div>
+              )}
+              {demographics.tract?.food_access?.is_food_desert && (
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Food Desert Area</p>
+                  <p className="text-sm text-amber-700 mt-1">Limited access to affordable, nutritious food</p>
+                </div>
+              )}
+              {!demographics.tract?.food_access?.is_food_desert && demographics.tract && (
+                <div className="rounded-xl bg-green-50 border border-green-200 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-green-600">Food Access</p>
+                  <p className="text-sm text-green-700 mt-1">Adequate food retail nearby</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {reviewPayload ? (
         <MetricsSection reviewPayload={reviewPayload} timeframeLabel={timeframeLabel} />

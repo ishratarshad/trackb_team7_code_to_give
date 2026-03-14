@@ -1,21 +1,23 @@
 'use client';
 
-import { 
-  AlertTriangle, 
-  Clock3, 
-  ShieldAlert, 
-  Target, 
-  Download, 
-  PieChart as PieIcon, 
-  TrendingUp 
+import {
+  AlertTriangle,
+  Clock3,
+  ShieldAlert,
+  Target,
+  Download,
+  PieChart as PieIcon,
+  TrendingUp,
+  Loader2
 } from 'lucide-react';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, useCallback, type ReactNode } from 'react';
 
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingCard } from '@/components/ui/loading-card';
 import { buildDashboardInsights, getTimeframeLabel } from '@/lib/analytics';
 import { cn } from '@/lib/cn';
 import { formatPercentage, formatWaitTime } from '@/lib/formatters';
+import { exportAnalyticsReport, type AnalyticsReportData } from '@/lib/pdf-export';
 import type { Resource, ReviewPayload, TimeframeOption, TrendPoint } from '@/types/resources';
 
 export function InsightsView({
@@ -57,12 +59,61 @@ export function InsightsView({
       { label: 'Protein/Meat', value: getPct('hasMeat'), color: 'bg-rose-500' },
       { label: 'Halal Options', value: getPct('hasHalal'), color: 'bg-amber-500' },
       { label: 'Kosher Options', value: getPct('hasKosher'), color: 'bg-blue-500' },
+      { label: 'Dairy Products', value: getPct('hasDairy'), color: 'bg-sky-500' },
+      { label: 'Grains/Staples', value: getPct('hasGrains'), color: 'bg-orange-500' },
     ];
   }, [resources]);
 
-  const handleExportPDF = () => {
-    window.print();
-  };
+  // Build top disruptions for export
+  const topDisruptions = useMemo(() => {
+    return insights.serviceDisruptions.slice(0, 10).map((alert) => ({
+      name: alert.resourceName,
+      score: alert.disruptionScore,
+      wait: alert.averageWaitMinutes ?? 0,
+      unmet: alert.unmetDemand ?? 0,
+    }));
+  }, [insights.serviceDisruptions]);
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = useCallback(() => {
+    setIsExporting(true);
+
+    // Small delay to show loading state
+    setTimeout(() => {
+      const reportData: AnalyticsReportData = {
+        title: 'Lemontree Operations Report',
+        borough: activeBoroughLabel,
+        timeframe: timeframeLabel,
+        generatedAt: new Date().toLocaleString(),
+        resourceCount: resources.length,
+        kpis: {
+          averageWaitMinutes: insights.kpis.averageWaitMinutes,
+          helpSuccessRate: insights.kpis.helpSuccessRate,
+          unmetDemand: insights.kpis.unmetDemand,
+          inaccuratePercentage: insights.kpis.inaccuratePercentage,
+        },
+        supplyBreakdown: supplyBreakdown.map((item) => ({
+          label: item.label,
+          value: item.value,
+        })),
+        topDisruptions,
+        barriers: insights.structuredSignals.map((signal) => ({
+          label: signal.label,
+          count: signal.count,
+        })),
+      };
+
+      try {
+        exportAnalyticsReport(reportData);
+      } catch (error) {
+        console.error('PDF export failed:', error);
+        alert('Failed to generate PDF. Please try again.');
+      } finally {
+        setIsExporting(false);
+      }
+    }, 100);
+  }, [activeBoroughLabel, timeframeLabel, resources.length, insights, supplyBreakdown, topDisruptions]);
 
   if (isLoading && !resources.length) {
     return (
@@ -98,11 +149,20 @@ export function InsightsView({
               <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate">
                 Borough: {activeBoroughLabel}
               </span>
-              <button 
+              <button
                 onClick={handleExportPDF}
-                className="print:hidden flex items-center gap-2 rounded-full bg-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white hover:bg-pine transition"
+                disabled={isExporting}
+                className="print:hidden flex items-center gap-2 rounded-full bg-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white hover:bg-pine transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Download className="h-3 w-3" /> Export Report (PDF)
+                {isExporting ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" /> Generating...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-3 w-3" /> Export Report (PDF)
+                  </>
+                )}
               </button>
             </div>
           </div>

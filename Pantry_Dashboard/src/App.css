@@ -321,3 +321,35 @@ body {
 .feedback-summary-issues li {
   padding: 4px 0;
 }
+
+/* Dietary badges */
+.dietary-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge.halal {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.kosher {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.badge.fresh {
+  background: #fff3cd;
+  color: #856404;
+}
