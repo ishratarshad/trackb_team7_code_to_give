@@ -65,6 +65,9 @@ export function ResourceFilters({
         filters.hasKosher,
         filters.hasFreshProduce,
         filters.hasMeat,
+        filters.hasDairy,
+        filters.hasCanned,
+        filters.hasGrains,
       ].filter(Boolean).length,
     [filters],
   );
@@ -146,6 +149,7 @@ export function ResourceFilters({
 
           <div className="h-6 w-px bg-line/60 mx-1 hidden sm:block" />
 
+          {/* TEAM 7: UPDATED QUICK FILTERS */}
           <QuickFilterChip
             label="Fresh Produce"
             active={filters.hasFreshProduce}
@@ -165,6 +169,21 @@ export function ResourceFilters({
             label="Protein"
             active={filters.hasMeat}
             onClick={() => onChange({ hasMeat: !filters.hasMeat })}
+          />
+          <QuickFilterChip
+            label="Dairy"
+            active={filters.hasDairy}
+            onClick={() => onChange({ hasDairy: !filters.hasDairy })}
+          />
+          <QuickFilterChip
+            label="Canned"
+            active={filters.hasCanned}
+            onClick={() => onChange({ hasCanned: !filters.hasCanned })}
+          />
+          <QuickFilterChip
+            label="Grains"
+            active={filters.hasGrains}
+            onClick={() => onChange({ hasGrains: !filters.hasGrains })}
           />
         </div>
 
@@ -274,8 +293,6 @@ export function ResourceFilters({
     </div>
   );
 }
-
-// --- HELPER COMPONENTS (THE ONES THAT WERE MISSING) ---
 
 function FilterSelect({
   label,

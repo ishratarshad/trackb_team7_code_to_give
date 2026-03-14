@@ -228,10 +228,14 @@ export type BookmarkedResource = Pick<
   | 'travelDistanceMiles'
   | 'scheduleSummary'
   | 'status'
+  // Team 7 Enhanced Fields
   | 'hasFreshProduce'
   | 'hasHalal'
   | 'hasKosher'
   | 'hasMeat'
+  | 'hasDairy'
+  | 'hasCanned'
+  | 'hasGrains'
 >;
 
 export type DashboardFilterState = {
@@ -254,4 +258,7 @@ export type DashboardFilterState = {
   hasHalal: boolean;
   hasKosher: boolean;
   hasMeat: boolean;
+  hasDairy: boolean;
+  hasCanned: boolean;
+  hasGrains: boolean;
 };

@@ -39,6 +39,9 @@ import type {
   TimeframeOption,
 } from '@/types/resources';
 
+// --- TEAM 7: JSON DATA LINK ---
+import supplyProfiles from '@/src/data/supply_profiles.json';
+
 const ResourceMap = dynamic(
   () => import('@/components/dashboard/resource-map').then((module) => module.ResourceMap),
   {
@@ -69,7 +72,6 @@ type MapViewportState = {
   center: Coordinates;
 };
 
-// Updated with Team 7 AI Classifier Flags
 const DEFAULT_FILTERS: DashboardFilterState = {
   location: '',
   searchText: '',
@@ -85,11 +87,13 @@ const DEFAULT_FILTERS: DashboardFilterState = {
   inaccurateListings: false,
   sort: 'alpha-asc',
   nearbyRadiusMiles: 2,
-  // AI Classifier Toggles
   hasFreshProduce: false,
   hasHalal: false,
   hasKosher: false,
   hasMeat: false,
+  hasDairy: false,
+  hasCanned: false,
+  hasGrains: false,
 };
 
 function isBorough(value: string | null): value is Borough {
@@ -157,11 +161,13 @@ function readFiltersFromSearchParams(searchParams: ReadonlyURLSearchParams): Das
     highestWait: readBooleanParam(searchParams, 'highestWait'),
     highFailureRate: readBooleanParam(searchParams, 'highFailureRate'),
     inaccurateListings: readBooleanParam(searchParams, 'inaccurateListings'),
-    // AI classifier params
     hasFreshProduce: readBooleanParam(searchParams, 'hasFreshProduce'),
     hasHalal: readBooleanParam(searchParams, 'hasHalal'),
     hasKosher: readBooleanParam(searchParams, 'hasKosher'),
     hasMeat: readBooleanParam(searchParams, 'hasMeat'),
+    hasDairy: readBooleanParam(searchParams, 'hasDairy'),
+    hasCanned: readBooleanParam(searchParams, 'hasCanned'),
+    hasGrains: readBooleanParam(searchParams, 'hasGrains'),
     sort: isResourceSort(sort) ? sort : DEFAULT_FILTERS.sort,
     nearbyRadiusMiles: readNumberParam(
       searchParams,
@@ -207,6 +213,9 @@ function createDashboardSearchParams({
   if (filters.hasHalal) params.set('hasHalal', '1');
   if (filters.hasKosher) params.set('hasKosher', '1');
   if (filters.hasMeat) params.set('hasMeat', '1');
+  if (filters.hasDairy) params.set('hasDairy', '1');
+  if (filters.hasCanned) params.set('hasCanned', '1');
+  if (filters.hasGrains) params.set('hasGrains', '1');
   if (filters.sort !== DEFAULT_FILTERS.sort) params.set('sort', filters.sort);
   if (filters.nearbyRadiusMiles !== DEFAULT_FILTERS.nearbyRadiusMiles) params.set('nearbyRadiusMiles', String(filters.nearbyRadiusMiles));
   if (view === 'insights') params.set('view', 'insights');
@@ -338,11 +347,14 @@ function filterResources({
     if (filters.openNowOnly && !resource.status.isOpen) return false;
     if (filters.openSoonOnly && !isOpenSoon(resource)) return false;
 
-    // Team 7 AI Classifier Matches
+    // AI Matches
     if (filters.hasFreshProduce && !resource.hasFreshProduce) return false;
     if (filters.hasHalal && !resource.hasHalal) return false;
     if (filters.hasKosher && !resource.hasKosher) return false;
     if (filters.hasMeat && !resource.hasMeat) return false;
+    if (filters.hasDairy && !resource.hasDairy) return false;
+    if (filters.hasCanned && !resource.hasCanned) return false;
+    if (filters.hasGrains && !resource.hasGrains) return false;
 
     if (!matchesStructuredFlags(resource, filters, reviewPayloadById)) return false;
     return true;
@@ -371,6 +383,9 @@ function getPaginationFilterKey(filters: DashboardFilterState) {
     hasHalal: filters.hasHalal,
     hasKosher: filters.hasKosher,
     hasMeat: filters.hasMeat,
+    hasDairy: filters.hasDairy,
+    hasCanned: filters.hasCanned,
+    hasGrains: filters.hasGrains,
     sort: filters.sort,
   });
 }
@@ -451,10 +466,27 @@ export function DashboardClient() {
     [boundedResourcesQuery.data?.resources, currentResourcePage?.resources, filters.syncListToMap],
   );
 
-  const loadedResources = useMemo(
+  const rawLoadedResources = useMemo(
     () => filters.syncListToMap ? boundedResourcesQuery.data?.resources ?? [] : resourcePages.flatMap((page) => page.resources),
     [boundedResourcesQuery.data?.resources, filters.syncListToMap, resourcePages],
   );
+
+  // --- TEAM 7: HYDRATION LOGIC (THE LINK) ---
+  const loadedResources = useMemo(() => {
+    return rawLoadedResources.map(resource => {
+      const aiData = (supplyProfiles as any[]).find(p => p.id === resource.id);
+      return {
+        ...resource,
+        hasFreshProduce: aiData?.hasFreshProduce ?? resource.hasFreshProduce,
+        hasHalal: aiData?.hasHalal ?? resource.hasHalal,
+        hasKosher: aiData?.hasKosher ?? resource.hasKosher,
+        hasMeat: aiData?.hasMeat ?? resource.hasMeat,
+        hasDairy: aiData?.hasDairy ?? resource.hasDairy,
+        hasCanned: aiData?.hasCanned ?? resource.hasCanned,
+        hasGrains: aiData?.hasGrains ?? resource.hasGrains,
+      };
+    });
+  }, [rawLoadedResources]);
 
   const reviewResourceIds = useMemo(() => loadedResources.map((resource) => resource.id), [loadedResources]);
   const reviewSummariesQuery = useReviewSummaries(reviewResourceIds);
@@ -466,7 +498,7 @@ export function DashboardClient() {
   const visibleListResources = useMemo(
     () => sortResources(
       filterResources({
-        resources: listBaseResources,
+        resources: listBaseResources.map(r => loadedResources.find(lr => lr.id === r.id) || r),
         filters,
         searchText: normalizedSearchText,
         locationText: normalizedLocation,
@@ -475,7 +507,7 @@ export function DashboardClient() {
       filters.sort,
       timeframedReviewPayloadById,
     ),
-    [filters, listBaseResources, normalizedLocation, normalizedSearchText, timeframedReviewPayloadById],
+    [filters, listBaseResources, loadedResources, normalizedLocation, normalizedSearchText, timeframedReviewPayloadById],
   );
 
   const allFilteredResources = useMemo(
@@ -493,7 +525,23 @@ export function DashboardClient() {
     [filters, loadedResources, normalizedLocation, normalizedSearchText, timeframedReviewPayloadById],
   );
 
-  // NEW: Dynamic Availability Stats for Team 7
+  // --- TOP SHORTAGES LOGIC ---
+  const topDisruptions = useMemo(() => {
+    return [...allFilteredResources]
+      .map(resource => {
+        const summary = timeframedReviewPayloadById.get(resource.id)?.summary;
+        return {
+          id: resource.id,
+          name: resource.name,
+          score: (summary?.averageWaitMinutes ?? 0) + (summary?.didNotReceiveHelpPercentage ?? 0),
+          wait: summary?.averageWaitMinutes ?? 0,
+          unmet: summary?.didNotReceiveHelpPercentage ?? 0
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+  }, [allFilteredResources, timeframedReviewPayloadById]);
+
   const foodInsightsStats = useMemo(() => {
     const total = visibleListResources.length;
     if (total === 0) return null;
@@ -508,6 +556,9 @@ export function DashboardClient() {
       halal: getPct('hasHalal'),
       kosher: getPct('hasKosher'),
       protein: getPct('hasMeat'),
+      dairy: getPct('hasDairy'),
+      canned: getPct('hasCanned'),
+      grains: getPct('hasGrains'),
     };
   }, [visibleListResources]);
 
@@ -635,24 +686,75 @@ export function DashboardClient() {
                 </div>
 
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3 lg:px-4">
-                  {/* Team 7 Availability Insights Bar */}
+                  
+                  {/* --- TOP SHORTAGES BOARD --- */}
+                  {topDisruptions.length > 0 && (
+                    <div className="panel-surface mb-4 border-l-4 border-l-amber-500 bg-white/40 p-4 backdrop-blur-sm shadow-sm">
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate/60">
+                          Operational Priority Board (Top 5 Gaps)
+                        </h3>
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                          ACTION REQUIRED
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {topDisruptions.map((item, idx) => (
+                          <div 
+                            key={item.id} 
+                            onClick={() => openResource(item.id)}
+                            className="flex cursor-pointer items-center justify-between rounded-xl bg-white/80 p-2.5 transition hover:bg-mist border border-transparent hover:border-amber-200"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-black text-slate/20">#{idx + 1}</span>
+                              <p className="text-sm font-bold text-ink truncate max-w-[180px]">{item.name}</p>
+                            </div>
+                            <div className="flex gap-4">
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold text-slate/40 uppercase">Wait</p>
+                                <p className="text-xs font-bold text-ink">{item.wait}m</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold text-slate/40 uppercase">Unmet</p>
+                                <p className="text-xs font-bold text-amber-600">{item.unmet}%</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* --- INSIGHTS BAR --- */}
                   {foodInsightsStats && (
-                    <div className="grid grid-cols-4 gap-2 rounded-[22px] bg-white/60 border border-line/50 p-4 mb-2 shadow-sm backdrop-blur-sm">
-                      <div className="text-center">
+                    <div className="flex flex-wrap gap-2 rounded-[22px] bg-white/60 border border-line/50 p-4 mb-2 shadow-sm backdrop-blur-sm justify-between">
+                      <div className="flex-1 min-w-[60px] text-center">
                         <p className="text-lg font-bold text-pine">{foodInsightsStats.produce}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Produce</p>
                       </div>
-                      <div className="text-center border-l border-line/40">
+                      <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
                         <p className="text-lg font-bold text-pine">{foodInsightsStats.halal}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Halal</p>
                       </div>
-                      <div className="text-center border-l border-line/40">
+                      <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
                         <p className="text-lg font-bold text-pine">{foodInsightsStats.kosher}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Kosher</p>
                       </div>
-                      <div className="text-center border-l border-line/40">
+                      <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
                         <p className="text-lg font-bold text-pine">{foodInsightsStats.protein}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Protein</p>
+                      </div>
+                      <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
+                        <p className="text-lg font-bold text-pine">{foodInsightsStats.dairy}%</p>
+                        <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Dairy</p>
+                      </div>
+                      <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
+                        <p className="text-lg font-bold text-pine">{foodInsightsStats.canned}%</p>
+                        <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Canned</p>
+                      </div>
+                      <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
+                        <p className="text-lg font-bold text-pine">{foodInsightsStats.grains}%</p>
+                        <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Grains</p>
                       </div>
                     </div>
                   )}
