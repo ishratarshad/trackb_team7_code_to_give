@@ -1,5 +1,15 @@
 # Lemontree Pantry Dashboard
 
+**Supply profiles:** The dashboard imports `src/data/supply_profiles.json`, but the generated file lives at project-root `data/supply_profiles.json`. After running the normalizer pipeline, sync it with:
+
+```bash
+npm run sync:supply-profiles
+```
+
+This copies `../data/supply_profiles.json` into `src/data/` so Vite can import it.
+
+---
+
 Frontend-only prototype for exploring food pantries and meal services with a synchronized map, compact list view, structured resource details, and local bookmarks.
 
 ## Stack

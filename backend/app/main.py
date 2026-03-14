@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -14,6 +15,8 @@ from app.lemontree_proxy import (
     fetch_resource,
     fetch_resources,
 )
+from feedback.routes import router as resource_reviews_router
+
 from app.models import (
     AnalyticsSummary,
     AnalyticsInsights,
@@ -40,33 +43,44 @@ from app.models import (
 )
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 def _parse_cors_origins() -> list[str]:
     raw = (os.getenv("CORS_ORIGINS") or "").strip()
-    if not raw:
-        return []
-    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
+    # Ensure localhost dev origins for Next.js (3000) and Vite (5173)
+    defaults = ["http://localhost:3000", "http://localhost:5173"]
+    if not origins:
+        origins = defaults
+    else:
+        for d in defaults:
+            if d not in origins:
+                origins = list(origins) + [d]
+    return origins
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.pool = await create_pool()
+    if app.state.pool is None:
+        logger.warning("Starting without database; DB-dependent endpoints will return 503")
     yield
-    await app.state.pool.close()
+    if app.state.pool is not None:
+        await app.state.pool.close()
 
 
 app = FastAPI(title="Food Access Insights API", version="0.2.0", lifespan=lifespan)
 
 origins = _parse_cors_origins()
-if origins:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.include_router(resource_reviews_router)
 
 
 def _build_filters(
@@ -97,10 +111,21 @@ def _build_filters(
     return where_sql, values
 
 
+def _require_pool(request: Request):
+    """Raise 503 if database is not configured. Returns pool otherwise."""
+    pool = getattr(request.app.state, "pool", None)
+    if pool is None:
+        raise HTTPException(status_code=503, detail="Database not configured")
+    return pool
+
+
 @app.get("/health")
 async def health(request: Request) -> dict:
+    pool = getattr(request.app.state, "pool", None)
+    if pool is None:
+        return {"status": "degraded", "db": "not configured"}
     try:
-        ok = await db_health_check(request.app.state.pool)
+        ok = await db_health_check(pool)
         if not ok:
             return {"status": "degraded", "db": "error"}
         return {"status": "ok", "db": "ok"}
@@ -116,6 +141,7 @@ async def health_head(request: Request) -> None:
 
 @app.post("/pantries", response_model=PantryOut)
 async def create_pantry(request: Request, payload: PantryCreate) -> PantryOut:
+    pool = _require_pool(request)
     query = """
         insert into pantries (
             name,
@@ -131,7 +157,7 @@ async def create_pantry(request: Request, payload: PantryCreate) -> PantryOut:
         values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         returning *
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(
             query,
             payload.name,
@@ -152,6 +178,7 @@ async def list_pantries(
     request: Request,
     neighborhood: str | None = None,
 ) -> list[PantryOut]:
+    pool = _require_pool(request)
     where = ""
     values: list[Any] = []
     if neighborhood:
@@ -163,7 +190,7 @@ async def list_pantries(
         {where}
         order by name
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query, *values)
     return [PantryOut(**dict(row)) for row in rows]
 
@@ -176,6 +203,7 @@ async def list_resources(
     resource_kind: ResourceKind | None = Query(None),
     open_now: bool | None = None,
 ) -> list[PantryOut]:
+    pool = _require_pool(request)
     where = []
     values: list[Any] = []
     if neighborhood:
@@ -197,15 +225,16 @@ async def list_resources(
         {where_sql}
         order by name
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query, *values)
     return [PantryOut(**dict(row)) for row in rows]
 
 
 @app.get("/resources/{resource_id}", response_model=PantryOut)
 async def get_resource(request: Request, resource_id: str) -> PantryOut:
+    pool = _require_pool(request)
     query = "select * from pantries where id = $1"
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(query, resource_id)
     if not row:
         raise HTTPException(status_code=404, detail="Resource not found")
@@ -214,8 +243,9 @@ async def get_resource(request: Request, resource_id: str) -> PantryOut:
 
 @app.get("/pantries/{pantry_id}", response_model=PantryOut)
 async def get_pantry(request: Request, pantry_id: str) -> PantryOut:
+    pool = _require_pool(request)
     query = "select * from pantries where id = $1"
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(query, pantry_id)
     if not row:
         raise HTTPException(status_code=404, detail="Pantry not found")
@@ -224,8 +254,9 @@ async def get_pantry(request: Request, pantry_id: str) -> PantryOut:
 
 @app.post("/feedback", response_model=FeedbackOut)
 async def create_feedback(request: Request, payload: FeedbackCreate) -> FeedbackOut:
+    pool = _require_pool(request)
     cleaned = clean_feedback_payload(payload)
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         pantry = await conn.fetchrow(
             "select name, neighborhood from pantries where id = $1",
             cleaned["pantry_id"],
@@ -339,6 +370,7 @@ async def list_feedback(
         from_=from_,
         to=to,
     )
+    pool = _require_pool(request)
     values.extend([limit, offset])
     query = f"""
         select
@@ -352,7 +384,7 @@ async def list_feedback(
         limit ${len(values) - 1}
         offset ${len(values)}
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query, *values)
     return [FeedbackOut(**dict(row)) for row in rows]
 
@@ -366,6 +398,7 @@ async def analytics_summary(
     from_: datetime | None = Query(None, alias="from"),
     to: datetime | None = Query(None),
 ) -> AnalyticsSummary:
+    pool = _require_pool(request)
     where_sql, values = _build_filters(
         pantry_id=pantry_id,
         neighborhood=neighborhood,
@@ -389,7 +422,7 @@ async def analytics_summary(
         {where_sql}
         group by f.resource_type
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         summary = await conn.fetchrow(summary_query, *values)
         by_resource = await conn.fetch(by_resource_query, *values)
     feedback_by_resource = {r["resource_type"]: r["count"] for r in by_resource}
@@ -410,6 +443,7 @@ async def analytics_issues(
     from_: datetime | None = Query(None, alias="from"),
     to: datetime | None = Query(None),
 ) -> list[IssueCategory]:
+    pool = _require_pool(request)
     where_sql, values = _build_filters(
         pantry_id=pantry_id,
         neighborhood=neighborhood,
@@ -428,7 +462,7 @@ async def analytics_issues(
         ) as issues
         group by issue
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(json_query, *values)
         if rows:
             return [IssueCategory(issue=r["issue"], count=r["count"]) for r in rows]
@@ -469,6 +503,7 @@ async def analytics_trends(
     to: datetime | None = Query(None),
     interval: str = Query("day", pattern="^(day|week|month)$"),
 ) -> list[TrendPoint]:
+    pool = _require_pool(request)
     where_sql, values = _build_filters(
         pantry_id=pantry_id,
         neighborhood=neighborhood,
@@ -488,7 +523,7 @@ async def analytics_trends(
         group by bucket
         order by bucket
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query, *values)
     return [TrendPoint(**dict(row)) for row in rows]
 
@@ -502,6 +537,7 @@ async def analytics_heatmap(
     from_: datetime | None = Query(None, alias="from"),
     to: datetime | None = Query(None),
 ) -> list[HeatmapPoint]:
+    pool = _require_pool(request)
     where_sql, values = _build_filters(
         pantry_id=pantry_id,
         neighborhood=neighborhood,
@@ -523,13 +559,14 @@ async def analytics_heatmap(
         group by p.id, p.name, p.neighborhood, p.latitude, p.longitude
         order by total_feedback desc
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query, *values)
     return [HeatmapPoint(**dict(row)) for row in rows]
 
 
 @app.get("/analytics/insights", response_model=AnalyticsInsights)
 async def analytics_insights(request: Request) -> AnalyticsInsights:
+    pool = _require_pool(request)
     longest_wait_query = """
         select p.id, p.name, p.neighborhood, avg(f.wait_time_min) as metric
         from feedback f
@@ -559,7 +596,7 @@ async def analytics_insights(request: Request) -> AnalyticsInsights:
         order by metric desc nulls last
         limit 5
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         longest_wait = await conn.fetch(longest_wait_query)
         lowest_satisfaction = await conn.fetch(lowest_satisfaction_query)
         unmet_demand = await conn.fetch(unmet_demand_query)
@@ -596,12 +633,13 @@ async def analytics_insights(request: Request) -> AnalyticsInsights:
 
 @app.get("/pantries/{pantry_id}/supply", response_model=SupplyProfileOut)
 async def pantry_supply(request: Request, pantry_id: str) -> SupplyProfileOut:
+    pool = _require_pool(request)
     query = """
         select pantry_id, normalized_foods, category_distribution, updated_at
         from supply_profiles
         where pantry_id = $1
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(query, pantry_id)
     if not row:
         raise HTTPException(status_code=404, detail="Supply profile not found")
@@ -610,12 +648,13 @@ async def pantry_supply(request: Request, pantry_id: str) -> SupplyProfileOut:
 
 @app.post("/photos", response_model=PhotoOut)
 async def create_photo(request: Request, payload: PhotoCreate) -> PhotoOut:
+    pool = _require_pool(request)
     query = """
         insert into pantry_photos (pantry_id, image_url, captured_at)
         values ($1, $2, $3)
         returning *
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(
             query,
             payload.pantry_id,
@@ -635,13 +674,14 @@ async def create_photo(request: Request, payload: PhotoCreate) -> PhotoOut:
 
 @app.get("/pantries/{pantry_id}/photos", response_model=list[PhotoOut])
 async def list_photos(request: Request, pantry_id: str) -> list[PhotoOut]:
+    pool = _require_pool(request)
     query = """
         select *
         from pantry_photos
         where pantry_id = $1
         order by created_at desc
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query, pantry_id)
     return [
         PhotoOut(
@@ -663,6 +703,7 @@ async def classify_photo(
     photo_id: str,
     payload: PhotoClassify,
 ) -> PhotoOut:
+    pool = _require_pool(request)
     query = """
         update pantry_photos
         set raw_tags = $1,
@@ -670,7 +711,7 @@ async def classify_photo(
         where id = $3
         returning *
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(
             query,
             payload.raw_tags,
@@ -692,8 +733,9 @@ async def classify_photo(
 
 @app.get("/datasets", response_model=list[DatasetOut])
 async def list_datasets(request: Request) -> list[DatasetOut]:
+    pool = _require_pool(request)
     query = "select * from public_datasets order by ingested_at desc"
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query)
     return [DatasetOut(**dict(row)) for row in rows]
 
@@ -705,6 +747,7 @@ async def get_dataset(
     geo_unit_id: str | None = None,
     limit: int = Query(100, ge=1, le=1000),
 ) -> DatasetDetail:
+    pool = _require_pool(request)
     dataset_query = "select * from public_datasets where id = $1"
     metrics_where = "where dataset_id = $1"
     values: list[Any] = [dataset_id]
@@ -719,7 +762,7 @@ async def get_dataset(
         limit ${len(values) + 1}
     """
     values.append(limit)
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         dataset = await conn.fetchrow(dataset_query, dataset_id)
         if not dataset:
             raise HTTPException(status_code=404, detail="Dataset not found")
@@ -735,6 +778,7 @@ async def dataset_overlay(
     request: Request,
     dataset_id: str,
 ) -> list[DatasetOverlayPoint]:
+    pool = _require_pool(request)
     query = """
         select
             p.id as pantry_id,
@@ -750,27 +794,29 @@ async def dataset_overlay(
         where m.dataset_id = $1
         order by p.name
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query, dataset_id)
     return [DatasetOverlayPoint(**dict(row)) for row in rows]
 
 
 @app.post("/reports", response_model=ReportOut)
 async def create_report(request: Request, payload: ReportCreate) -> ReportOut:
+    pool = _require_pool(request)
     query = """
         insert into reports (title, filters)
         values ($1, $2)
         returning *
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(query, payload.title, payload.filters)
     return ReportOut(**dict(row))
 
 
 @app.get("/reports/{report_id}", response_model=ReportOut)
 async def get_report(request: Request, report_id: str) -> ReportOut:
+    pool = _require_pool(request)
     query = "select * from reports where id = $1"
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(query, report_id)
     if not row:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -820,7 +866,8 @@ async def fusion_lemontree_resources_with_demographics(
 
     metrics_by_zip: dict[str, dict[str, Any]] = {}
     if zip_list:
-        async with request.app.state.pool.acquire() as conn:
+        pool = _require_pool(request)
+        async with pool.acquire() as conn:
             resolved_dataset_id = dataset_id or await _get_latest_dataset_id(conn)
             if resolved_dataset_id:
                 rows = await conn.fetch(
@@ -865,7 +912,8 @@ async def get_demographics_by_tract(
 
     Returns combined ACS demographics and USDA food access data if available.
     """
-    async with request.app.state.pool.acquire() as conn:
+    pool = _require_pool(request)
+    async with pool.acquire() as conn:
         # Get all datasets that have data for this GEOID
         rows = await conn.fetch(
             """
@@ -943,7 +991,8 @@ async def search_demographics(
         limit ${len(values)}
     """
 
-    async with request.app.state.pool.acquire() as conn:
+    pool = _require_pool(request)
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query, *values)
 
     return [
@@ -969,7 +1018,8 @@ async def analytics_shortage(
 
     Returns items ranked by shortage score (high = most needed, least available).
     """
-    async with request.app.state.pool.acquire() as conn:
+    pool = _require_pool(request)
+    async with pool.acquire() as conn:
         # 1. Get demand: aggregate items_unavailable mentions
         demand_query = """
             select
@@ -1098,6 +1148,7 @@ async def demographics_summary(request: Request) -> dict:
     """
     Get a summary of available demographics datasets.
     """
+    pool = _require_pool(request)
     query = """
         select
             pd.id,
@@ -1111,7 +1162,7 @@ async def demographics_summary(request: Request) -> dict:
         group by pd.id, pd.name, pd.source, pd.description
         order by pd.name
     """
-    async with request.app.state.pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch(query)
 
     return {

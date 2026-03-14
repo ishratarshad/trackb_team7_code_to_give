@@ -112,3 +112,212 @@ body {
   border-bottom: 1px solid #eee;
   font-size: 14px;
 }
+
+/* View tabs */
+.view-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.view-tabs button {
+  padding: 10px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #374151;
+}
+
+.view-tabs button:hover {
+  background: #f9fafb;
+}
+
+.view-tabs button.active {
+  background: #1f2937;
+  color: white;
+  border-color: #1f2937;
+}
+
+/* Feedback view */
+.feedback-view h1 {
+  margin-bottom: 8px;
+}
+
+.feedback-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (min-width: 768px) {
+  .feedback-layout {
+    grid-template-columns: 1fr 320px;
+  }
+}
+
+.feedback-form-wrapper {
+  max-width: 560px;
+}
+
+/* Feedback form */
+.feedback-form h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.feedback-form-row {
+  margin-bottom: 16px;
+}
+
+.feedback-form-row label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.feedback-form-row input[type="text"],
+.feedback-form-row input[type="number"],
+.feedback-form-row input[type="url"],
+.feedback-form-row select,
+.feedback-form-row textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.feedback-form-row textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.feedback-form-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.feedback-form-toggle button {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.feedback-form-toggle button.active {
+  background: #1f2937;
+  color: white;
+  border-color: #1f2937;
+}
+
+.feedback-form-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.feedback-form-stars .star {
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  font-size: 20px;
+  cursor: pointer;
+  color: #d1d5db;
+}
+
+.feedback-form-stars .star.selected {
+  color: #f59e0b;
+}
+
+.feedback-form-error {
+  padding: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #b91c1c;
+  margin-bottom: 16px;
+}
+
+.feedback-form-success {
+  padding: 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #166534;
+  margin-bottom: 16px;
+}
+
+.feedback-form-issue-labels {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.feedback-form button[type="submit"] {
+  padding: 10px 24px;
+  background: #1f2937;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.feedback-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Feedback summary */
+.feedback-summary-loading,
+.feedback-summary-error {
+  padding: 20px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.feedback-summary-error {
+  color: #b91c1c;
+}
+
+.feedback-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.feedback-summary-item {
+  text-align: center;
+}
+
+.feedback-summary-item .label {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.feedback-summary-item .value {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.feedback-summary-issues ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  font-size: 13px;
+}
+
+.feedback-summary-issues li {
+  padding: 4px 0;
+}
