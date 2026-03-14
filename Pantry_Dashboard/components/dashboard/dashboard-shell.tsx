@@ -38,9 +38,11 @@ export function DashboardShell({
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <NavLink href="/" active={pathname === '/'} icon={<Map className="h-4 w-4" />}>
-                Explore
-              </NavLink>
+              {pathname !== '/' ? (
+                <NavLink href="/" active={pathname === '/'} icon={<Map className="h-4 w-4" />}>
+                  Explore
+                </NavLink>
+              ) : null}
               <NavLink
                 href="/bookmarks"
                 active={pathname === '/bookmarks'}

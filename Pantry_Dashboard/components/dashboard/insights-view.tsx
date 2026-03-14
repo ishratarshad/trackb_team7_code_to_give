@@ -12,12 +12,14 @@ export function InsightsView({
   resources,
   reviewPayloadById,
   timeframe,
+  scopeLabel,
   isLoading,
   onOpenResource,
 }: {
   resources: Resource[];
   reviewPayloadById: Map<string, ReviewPayload>;
   timeframe: TimeframeOption;
+  scopeLabel: string;
   isLoading?: boolean;
   onOpenResource: (resourceId: string) => void;
 }) {
@@ -58,6 +60,7 @@ export function InsightsView({
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate">
               These summaries are based on structured visit records only for {timeframeLabel.toLowerCase()} across {resources.length} loaded resources.
             </p>
+            <p className="mt-2 text-sm leading-6 text-slate">{scopeLabel}</p>
           </div>
 
           <div className="rounded-full bg-mist px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate">
@@ -188,7 +191,7 @@ export function InsightsView({
                 <span>Signals</span>
                 <span />
               </div>
-              <div className="divide-y divide-line/70 bg-white/85">
+              <div className="max-h-[420px] overflow-y-auto divide-y divide-line/70 bg-white/85">
                 {insights.serviceDisruptions.map((alert) => (
                   <div
                     key={alert.resourceId}

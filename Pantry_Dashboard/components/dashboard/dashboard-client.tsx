@@ -635,6 +635,9 @@ export function DashboardClient() {
   const canGoNext = filters.syncListToMap
     ? Boolean(boundedResourcesQuery.data?.cursor)
     : currentPageNumber < resourcePages.length || resourcesQuery.hasNextPage;
+  const insightsScopeLabel = filters.syncListToMap
+    ? 'Scope follows the current map viewport and the current list page when sync-to-map is enabled.'
+    : 'Scope follows the currently fetched search results across the pages loaded so far.';
 
   function replaceUrl(resourceId?: string | null, view = activeView) {
     startTransition(() => {
@@ -913,6 +916,7 @@ export function DashboardClient() {
               resources={allFilteredResources}
               reviewPayloadById={timeframedReviewPayloadById}
               timeframe={filters.timeframe}
+              scopeLabel={insightsScopeLabel}
               isLoading={reviewSummariesQuery.isLoading || reviewSummariesQuery.isFetching}
               onOpenResource={openResource}
             />
