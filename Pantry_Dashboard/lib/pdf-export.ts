@@ -276,3 +276,182 @@ function formatPct(value: number | null): string {
   if (value === null) return 'N/A';
   return `${value.toFixed(1)}%`;
 }
+
+/**
+ * Export individual resource details as PDF
+ */
+export interface ResourceReportData {
+  name: string;
+  address: string;
+  phone: string | null;
+  website: string | null;
+  resourceType: string;
+  schedule: string[];
+  status: string;
+  rating: number | null;
+  reviewCount: number;
+  dietaryFlags: {
+    hasFreshProduce: boolean;
+    hasHalal: boolean;
+    hasKosher: boolean;
+    hasMeat: boolean;
+    hasDairy: boolean;
+    hasGrains: boolean;
+  };
+  demographics?: {
+    borough: string | null;
+    povertyRate: number | null;
+    snapRate: number | null;
+    isFoodDesert: boolean;
+  };
+  reviewMetrics?: {
+    averageWait: number | null;
+    helpSuccessRate: number | null;
+  };
+}
+
+export function exportResourceReport(data: ResourceReportData): void {
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = 210;
+  const margin = 15;
+  let y = 20;
+
+  // Header
+  pdf.setFontSize(20);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(31, 41, 55);
+  pdf.text(data.name, margin, y);
+  y += 8;
+
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(107, 114, 128);
+  pdf.text(data.resourceType, margin, y);
+  y += 12;
+
+  // Contact Info Box
+  pdf.setFillColor(243, 244, 246);
+  pdf.roundedRect(margin, y, pageWidth - margin * 2, 28, 3, 3, 'F');
+  y += 8;
+
+  pdf.setFontSize(10);
+  pdf.setTextColor(31, 41, 55);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Address:', margin + 5, y);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(data.address, margin + 25, y);
+  y += 6;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Phone:', margin + 5, y);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(data.phone ?? 'Not listed', margin + 25, y);
+  y += 6;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Status:', margin + 5, y);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(data.status, margin + 25, y);
+  y += 15;
+
+  // Rating & Reviews
+  if (data.rating !== null || data.reviewCount > 0) {
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(31, 41, 55);
+    pdf.text('Rating & Reviews', margin, y);
+    y += 7;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Rating: ${data.rating?.toFixed(1) ?? 'N/A'} / 5`, margin, y);
+    pdf.text(`Reviews: ${data.reviewCount}`, margin + 50, y);
+    y += 10;
+  }
+
+  // Dietary Availability
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Food Availability (AI Detected)', margin, y);
+  y += 7;
+
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  const flags = data.dietaryFlags;
+  const dietaryItems = [
+    { label: 'Fresh Produce', value: flags.hasFreshProduce },
+    { label: 'Halal Options', value: flags.hasHalal },
+    { label: 'Kosher Options', value: flags.hasKosher },
+    { label: 'Meat/Protein', value: flags.hasMeat },
+    { label: 'Dairy', value: flags.hasDairy },
+    { label: 'Grains/Staples', value: flags.hasGrains },
+  ];
+
+  dietaryItems.forEach((item, idx) => {
+    const col = idx % 2 === 0 ? margin : margin + 90;
+    if (idx % 2 === 0 && idx > 0) y += 5;
+    pdf.setTextColor(item.value ? 16 : 156, item.value ? 185 : 163, item.value ? 129 : 175);
+    pdf.text(`${item.value ? '✓' : '✗'} ${item.label}`, col, y);
+  });
+  y += 12;
+
+  // Demographics
+  if (data.demographics) {
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(31, 41, 55);
+    pdf.text('Neighborhood Demographics', margin, y);
+    y += 7;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    if (data.demographics.borough) {
+      pdf.text(`Borough: ${data.demographics.borough}`, margin, y);
+      y += 5;
+    }
+    if (data.demographics.povertyRate !== null) {
+      pdf.text(`Poverty Rate: ${data.demographics.povertyRate.toFixed(1)}%`, margin, y);
+      y += 5;
+    }
+    if (data.demographics.snapRate !== null) {
+      pdf.text(`SNAP Households: ${data.demographics.snapRate.toFixed(1)}%`, margin, y);
+      y += 5;
+    }
+    if (data.demographics.isFoodDesert) {
+      pdf.setTextColor(220, 38, 38);
+      pdf.text('⚠ Located in a Food Desert area', margin, y);
+      pdf.setTextColor(31, 41, 55);
+      y += 5;
+    }
+    y += 8;
+  }
+
+  // Schedule
+  if (data.schedule.length > 0) {
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(31, 41, 55);
+    pdf.text('Schedule', margin, y);
+    y += 7;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    data.schedule.slice(0, 5).forEach((line) => {
+      pdf.text(line, margin, y);
+      y += 5;
+    });
+  }
+
+  // Footer
+  pdf.setFontSize(9);
+  pdf.setTextColor(156, 163, 175);
+  pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, 280);
+  pdf.text('Lemontree Partner Dashboard', pageWidth - margin - 50, 280);
+
+  pdf.save(`${data.name.replace(/\s+/g, '-').toLowerCase()}-report.pdf`);
+}

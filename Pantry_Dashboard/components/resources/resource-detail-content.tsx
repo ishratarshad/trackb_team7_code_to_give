@@ -14,7 +14,7 @@ import {
   formatPhoneNumber,
   formatRating,
 } from '@/lib/formatters';
-import { getDemographicsForCoordinates, getBoroughFromCoordinates } from '@/lib/demographics';
+import { getDemographicsForResource, getBoroughFromCoordinates } from '@/lib/demographics';
 import type { Resource, ReviewPayload } from '@/types/resources';
 
 export function ResourceDetailContent({
@@ -31,10 +31,10 @@ export function ResourceDetailContent({
   const showReviewCount = resource.reviewCount > 0;
   const showDistance = typeof resource.travelDistanceMiles === 'number';
 
-  // Get demographics data for this resource's neighborhood
+  // Get demographics data for this resource's neighborhood (by zipcode first, then coordinates)
   const demographics = useMemo(() => {
-    return getDemographicsForCoordinates(resource.coordinates);
-  }, [resource.coordinates]);
+    return getDemographicsForResource(resource.zipCode, resource.coordinates);
+  }, [resource.zipCode, resource.coordinates]);
 
   const boroughName = useMemo(() => {
     if (!resource.coordinates) return null;

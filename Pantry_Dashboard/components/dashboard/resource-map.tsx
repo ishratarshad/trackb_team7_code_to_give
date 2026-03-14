@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 import type { FeatureCollection, Point, Polygon } from 'geojson';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, TrendingDown, CreditCard, ChevronDown } from 'lucide-react';
 import Map, {
   Layer,
   NavigationControl,
@@ -17,6 +18,7 @@ import { MarkerPopupCard } from '@/components/resources/marker-popup-card';
 import { useResource, useReviewSummary } from '@/hooks/use-resources';
 import { distanceInMiles } from '@/lib/geo';
 import { hasMapboxToken, mapboxAccessToken } from '@/lib/mapbox';
+import { isInFoodDesert, isHighPovertyArea, isHighSnapArea } from '@/lib/demographics';
 import type { Bounds, Coordinates, Resource, ResourceMarker } from '@/types/resources';
 
 type PopupMarker = {
@@ -187,6 +189,45 @@ const radiusLineLayer: any = {
   },
 };
 
+const foodDesertLayer: any = {
+  id: 'food-desert-fill',
+  type: 'circle',
+  paint: {
+    'circle-color': '#dc2626', // Red
+    'circle-radius': 22,
+    'circle-opacity': 0.25,
+    'circle-stroke-width': 2,
+    'circle-stroke-color': '#b91c1c',
+    'circle-stroke-opacity': 0.7,
+  },
+};
+
+const highPovertyLayer: any = {
+  id: 'high-poverty-fill',
+  type: 'circle',
+  paint: {
+    'circle-color': '#f97316', // Orange
+    'circle-radius': 22,
+    'circle-opacity': 0.25,
+    'circle-stroke-width': 2,
+    'circle-stroke-color': '#ea580c',
+    'circle-stroke-opacity': 0.7,
+  },
+};
+
+const highSnapLayer: any = {
+  id: 'high-snap-fill',
+  type: 'circle',
+  paint: {
+    'circle-color': '#8b5cf6', // Purple
+    'circle-radius': 22,
+    'circle-opacity': 0.25,
+    'circle-stroke-width': 2,
+    'circle-stroke-color': '#7c3aed',
+    'circle-stroke-opacity': 0.7,
+  },
+};
+
 function normalizeMapError(errorEvent: unknown) {
   if (errorEvent instanceof Error) {
     return errorEvent.message;
@@ -235,6 +276,8 @@ export function ResourceMap({
   const lastViewportKeyRef = useRef('');
   const [activePopupMarker, setActivePopupMarker] = useState<PopupMarker | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [showOverlayMenu, setShowOverlayMenu] = useState(false);
+  const [activeOverlay, setActiveOverlay] = useState<'none' | 'poverty' | 'snap' | 'food-desert'>('none');
   const popupMarker =
     selectedResourceId && selectedCoordinates
       ? {
@@ -293,6 +336,28 @@ export function ResourceMap({
         : EMPTY_POLYGON_COLLECTION,
     [nearbyRadiusMiles, selectedCoordinates],
   );
+
+  // Overlay collections based on demographics - uses ALL markers, not just listed resources
+  const overlayCollection = useMemo(() => {
+    if (activeOverlay === 'none') return EMPTY_POINT_COLLECTION;
+
+    const filteredMarkers = markers.filter((marker) => {
+      const coords = { latitude: marker.coordinates.latitude, longitude: marker.coordinates.longitude };
+
+      switch (activeOverlay) {
+        case 'poverty':
+          return isHighPovertyArea(null, coords);
+        case 'snap':
+          return isHighSnapArea(null, coords);
+        case 'food-desert':
+          return isInFoodDesert(null, coords);
+        default:
+          return false;
+      }
+    });
+
+    return createMarkerCollection(filteredMarkers);
+  }, [markers, activeOverlay]);
 
   const syncViewportState = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -386,8 +451,86 @@ export function ResourceMap({
     );
   }
 
+  const overlayOptions = [
+    { id: 'none' as const, label: 'No Overlay', icon: null, color: '' },
+    { id: 'poverty' as const, label: 'High Poverty (>20%)', icon: TrendingDown, color: 'text-orange-500' },
+    { id: 'snap' as const, label: 'High SNAP (>20%)', icon: CreditCard, color: 'text-purple-500' },
+    { id: 'food-desert' as const, label: 'Food Deserts', icon: AlertTriangle, color: 'text-red-500' },
+  ];
+
+  const activeOption = overlayOptions.find(o => o.id === activeOverlay) ?? overlayOptions[0];
+
   return (
     <div className="relative h-full min-h-[560px] overflow-hidden rounded-[28px]">
+      {/* Overlay Dropdown Menu */}
+      <div className="absolute top-3 right-3" style={{ zIndex: 1000 }}>
+        <button
+          type="button"
+          onClick={() => setShowOverlayMenu(!showOverlayMenu)}
+          className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold shadow-lg transition ${
+            activeOverlay !== 'none'
+              ? 'bg-ink text-white'
+              : 'bg-white text-slate hover:bg-gray-100 border border-gray-200'
+          }`}
+        >
+          {activeOption.icon && <activeOption.icon className={`h-3.5 w-3.5 ${activeOverlay !== 'none' ? 'text-white' : activeOption.color}`} />}
+          {activeOverlay === 'none' ? 'Overlays' : activeOption.label}
+          <ChevronDown className={`h-3 w-3 transition-transform ${showOverlayMenu ? 'rotate-180' : ''}`} />
+        </button>
+
+        {showOverlayMenu && (
+          <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+            {overlayOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => {
+                  setActiveOverlay(option.id);
+                  setShowOverlayMenu(false);
+                }}
+                className={`w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-left transition hover:bg-gray-50 ${
+                  activeOverlay === option.id ? 'bg-mist' : ''
+                }`}
+              >
+                {option.icon ? (
+                  <option.icon className={`h-4 w-4 ${option.color}`} />
+                ) : (
+                  <span className="w-4" />
+                )}
+                {option.label}
+                {activeOverlay === option.id && (
+                  <span className="ml-auto text-pine">✓</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Overlay Legend */}
+      {activeOverlay !== 'none' && (
+        <div
+          className="absolute bottom-3 right-3 rounded-xl bg-white/95 px-3 py-2 shadow-lg border border-gray-200"
+          style={{ zIndex: 1000 }}
+        >
+          <div className="flex items-center gap-2 text-xs font-semibold">
+            <span
+              className={`w-4 h-4 rounded-full opacity-60 ${
+                activeOverlay === 'poverty' ? 'bg-orange-500' :
+                activeOverlay === 'snap' ? 'bg-purple-500' :
+                'bg-red-500'
+              }`}
+            />
+            <span className="text-slate">
+              {activeOverlay === 'poverty' && 'High poverty areas (>20%)'}
+              {activeOverlay === 'snap' && 'High SNAP enrollment (>20%)'}
+              {activeOverlay === 'food-desert' && 'Food desert areas'}
+            </span>
+            <span className="text-ink font-bold">({overlayCollection.features.length})</span>
+          </div>
+        </div>
+      )}
+
       <Map
         ref={mapRef}
         mapboxAccessToken={mapboxAccessToken}
@@ -485,6 +628,17 @@ export function ResourceMap({
         {selectedCoordinates ? (
           <Source id="selected-point-source" type="geojson" data={selectedCollection}>
             <Layer {...selectedLayer} />
+          </Source>
+        ) : null}
+
+        {/* Demographics Overlays */}
+        {activeOverlay !== 'none' && overlayCollection.features.length > 0 ? (
+          <Source id="overlay-points" type="geojson" data={overlayCollection}>
+            <Layer {...(
+              activeOverlay === 'poverty' ? highPovertyLayer :
+              activeOverlay === 'snap' ? highSnapLayer :
+              foodDesertLayer
+            )} />
           </Source>
         ) : null}
 

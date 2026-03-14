@@ -302,11 +302,11 @@ function FeedbackForm({
           Was information accurate?
         </span>
         <div className="flex gap-2">
-          {[
+          {([
             [true, 'Yes'],
             [false, 'No'],
             [null, '—'],
-          ].map(([val, label]) => (
+          ] as const).map(([val, label]) => (
             <button
               key={label}
               type="button"

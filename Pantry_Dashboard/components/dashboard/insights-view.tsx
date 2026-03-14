@@ -127,10 +127,36 @@ export function InsightsView({
 
   if (!resources.length) {
     return (
-      <EmptyState
-        title={insightsScope === 'bookmarked' ? 'No bookmarks match filters' : 'No resources in scope'}
-        description="Try widening the borough or other filters to see trends."
-      />
+      <div className="grid gap-4">
+        <div className="flex justify-end">
+          <div className="rounded-full border border-line/80 bg-white/85 p-1">
+            <button
+              type="button"
+              onClick={() => onInsightsScopeChange('all')}
+              className={cn(
+                'rounded-full px-4 py-2 text-sm font-semibold transition',
+                insightsScope === 'all' ? 'bg-pine text-white' : 'text-slate',
+              )}
+            >
+              All filtered
+            </button>
+            <button
+              type="button"
+              onClick={() => onInsightsScopeChange('bookmarked')}
+              className={cn(
+                'rounded-full px-4 py-2 text-sm font-semibold transition',
+                insightsScope === 'bookmarked' ? 'bg-pine text-white' : 'text-slate',
+              )}
+            >
+              Bookmarked
+            </button>
+          </div>
+        </div>
+        <EmptyState
+          title={insightsScope === 'bookmarked' ? 'No bookmarks match filters' : 'No resources in scope'}
+          description="Try widening the borough or other filters to see trends."
+        />
+      </div>
     );
   }
 
@@ -326,31 +352,101 @@ function TrendCard({ title, metric, data, valueSelector, valueFormatter }: { tit
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">{metric}</p>
       <h3 className="mt-2 text-2xl text-ink">{title}</h3>
       <p className="mt-3 text-2xl text-ink">{valueFormatter(latestValue)}</p>
-      <div className="mt-4"><SparklineChart data={values} /></div>
+      <div className="mt-4"><SparklineChart data={values} valueFormatter={valueFormatter} /></div>
     </div>
   );
 }
 
-function SparklineChart({ data }: { data: Array<number | null> }) {
+function SparklineChart({ data, valueFormatter }: { data: Array<number | null>; valueFormatter?: (v: number | null) => string }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const numericValues = data.filter((v): v is number => typeof v === 'number');
-  if (!numericValues.length) return <div className="h-28 bg-mist/60 rounded-[22px]" />;
+  if (!numericValues.length) return <div className="h-28 bg-mist/60 rounded-[22px] flex items-center justify-center text-slate text-sm">No data available</div>;
   const min = Math.min(...numericValues);
   const max = Math.max(...numericValues);
   const range = Math.max(max - min, 1);
   const width = 360;
   const height = 112;
-  const points = data.map((v, i) => {
+  const padding = 12;
+
+  const pointData = data.map((v, i) => {
     if (typeof v !== 'number') return null;
-    const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width;
-    const y = height - ((v - min) / range) * (height - 18) - 9;
-    return `${x},${y}`;
-  }).filter(Boolean);
+    const x = data.length === 1 ? width / 2 : padding + (i / (data.length - 1)) * (width - padding * 2);
+    const y = height - ((v - min) / range) * (height - 30) - 15;
+    return { x, y, value: v, index: i };
+  }).filter((p): p is { x: number; y: number; value: number; index: number } => p !== null);
+
+  const polylinePoints = pointData.map(p => `${p.x},${p.y}`).join(' ');
+  const hoveredPoint = hoveredIndex !== null ? pointData.find(p => p.index === hoveredIndex) : null;
+  const formatter = valueFormatter ?? ((v: number | null) => v?.toFixed(1) ?? 'N/A');
 
   return (
-    <div className="overflow-hidden rounded-[22px] bg-mist/60 p-3">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-28 w-full">
-        <polyline fill="none" stroke="#9b6813" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" points={points.join(' ')} />
+    <div className="overflow-hidden rounded-[22px] bg-mist/60 p-3 relative">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="h-28 w-full cursor-crosshair"
+        onMouseLeave={() => setHoveredIndex(null)}
+      >
+        {/* Area fill under line */}
+        <path
+          d={`M ${pointData[0]?.x ?? 0},${height} ${polylinePoints} L ${pointData[pointData.length - 1]?.x ?? width},${height} Z`}
+          fill="url(#sparklineGradient)"
+          opacity="0.3"
+        />
+        <defs>
+          <linearGradient id="sparklineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#9b6813" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#9b6813" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Main line */}
+        <polyline
+          fill="none"
+          stroke="#9b6813"
+          strokeWidth="3"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          points={polylinePoints}
+        />
+
+        {/* Interactive hit areas and points */}
+        {pointData.map((point) => (
+          <g key={point.index}>
+            {/* Larger invisible hit area */}
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={16}
+              fill="transparent"
+              onMouseEnter={() => setHoveredIndex(point.index)}
+              className="cursor-pointer"
+            />
+            {/* Visible point */}
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={hoveredIndex === point.index ? 6 : 4}
+              fill={hoveredIndex === point.index ? '#8f5f12' : '#9b6813'}
+              stroke="white"
+              strokeWidth={hoveredIndex === point.index ? 3 : 2}
+              className="transition-all duration-150"
+            />
+          </g>
+        ))}
       </svg>
+
+      {/* Tooltip */}
+      {hoveredPoint && (
+        <div
+          className="absolute bg-ink text-white px-2 py-1 rounded-lg text-xs font-semibold shadow-lg pointer-events-none transform -translate-x-1/2"
+          style={{
+            left: `${(hoveredPoint.x / width) * 100}%`,
+            top: `${(hoveredPoint.y / height) * 100 - 15}%`,
+          }}
+        >
+          {formatter(hoveredPoint.value)}
+        </div>
+      )}
     </div>
   );
 }
