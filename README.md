@@ -68,4 +68,4 @@ uvicorn app.main:app --reload
 
 ## Team 7
 
-Built for Morgan Stanley Code to Give 2024
+Built for Morgan Stanley Code to Give 2026
