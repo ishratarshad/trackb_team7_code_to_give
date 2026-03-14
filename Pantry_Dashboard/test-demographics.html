@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NYC Demographics API Test</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 900px; margin: 0 auto; }
+    button { padding: 10px 20px; margin: 10px 5px; font-size: 16px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 5px; }
+    button:hover { background: #2563eb; }
+    pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    .success { color: green; }
+    .error { color: red; }
+    .stat { background: white; border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+    .badge { display: inline-block; padding: 4px 10px; background: #e5e7eb; border-radius: 12px; margin: 2px; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>🗽 NYC Demographics API Test</h1>
+  <p>Test the demographics integration with real NYC Open Data</p>
+
+  <div>
+    <button onclick="testJacksonHeights()">Test: Jackson Heights (11372)</button>
+    <button onclick="testChinatown()">Test: Chinatown (10002)</button>
+    <button onclick="testBronx()">Test: Bronx (10451)</button>
+    <button onclick="testMatchScore()">Test: Cultural Match Score</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script type="module">
+    import {
+      getDemographicsByZipCode,
+      getFoodPreferencesByZipCode,
+      calculateCulturalMatchScore
+    } from './src/lib/demographicsApi.js';
+
+    window.testJacksonHeights = async function() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<p>Loading Jackson Heights (11372) demographics...</p>';
+
+      try {
+        const demographics = await getDemographicsByZipCode('11372');
+
+        if (!demographics) {
+          results.innerHTML = '<h2 class="error">❌ No data found for zip code 11372</h2>';
+          return;
+        }
+
+        let html = `<h2 class="success">✅ Jackson Heights Demographics</h2>`;
+
+        html += `<div class="stat">
+          <h3>📊 Population</h3>
+          <p><strong>Total:</strong> ${demographics.population.total.toLocaleString()}</p>
+        </div>`;
+
+        html += `<div class="stat">
+          <h3>🌍 Ethnicity Breakdown</h3>
+          <p><strong>Asian:</strong> ${demographics.ethnicity.asian}%</p>
+          <p><strong>Hispanic:</strong> ${demographics.ethnicity.hispanic}%</p>
+          <p><strong>Black:</strong> ${demographics.ethnicity.black}%</p>
+          <p><strong>White:</strong> ${demographics.ethnicity.white}%</p>
+        </div>`;
+
+        const prefs = await getFoodPreferencesByZipCode('11372');
+
+        html += `<div class="stat">
+          <h3>🍽️ Recommended Cultural Foods</h3>
+          <p><strong>Confidence:</strong> ${prefs.confidence}</p>
+          <p><strong>Reasoning:</strong> ${prefs.reasoning}</p>
+          <p><strong>Foods (first 20):</strong></p>
+          <div>`;
+
+        prefs.foods.slice(0, 20).forEach(food => {
+          html += `<span class="badge">${food}</span>`;
+        });
+
+        html += `</div></div>`;
+
+        results.innerHTML = html;
+      } catch (error) {
+        results.innerHTML = `<h2 class="error">❌ Error</h2><pre>${error.message}</pre>`;
+      }
+    };
+
+    window.testChinatown = async function() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<p>Loading Chinatown (10002) demographics...</p>';
+
+      try {
+        const prefs = await getFoodPreferencesByZipCode('10002');
+
+        let html = `<h2 class="success">✅ Chinatown (10002)</h2>`;
+
+        if (prefs.demographics) {
+          html += `<div class="stat">
+            <h3>🌍 Demographics</h3>
+            <p><strong>Asian:</strong> ${prefs.demographics.asian}%</p>
+            <p><strong>Hispanic:</strong> ${prefs.demographics.hispanic}%</p>
+            <p><strong>Population:</strong> ${prefs.population?.toLocaleString()}</p>
+          </div>`;
+        }
+
+        html += `<div class="stat">
+          <h3>🍜 Cultural Food Preferences</h3>
+          <p><strong>Confidence:</strong> ${prefs.confidence}</p>
+          <p><strong>Top 15 foods:</strong></p>
+          <div>`;
+
+        prefs.foods.slice(0, 15).forEach(food => {
+          html += `<span class="badge">${food}</span>`;
+        });
+
+        html += `</div></div>`;
+
+        results.innerHTML = html;
+      } catch (error) {
+        results.innerHTML = `<h2 class="error">❌ Error</h2><pre>${error.message}</pre>`;
+      }
+    };
+
+    window.testBronx = async function() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<p>Loading Bronx (10451) demographics...</p>';
+
+      try {
+        const prefs = await getFoodPreferencesByZipCode('10451');
+
+        let html = `<h2 class="success">✅ South Bronx (10451)</h2>`;
+
+        if (prefs.demographics) {
+          html += `<div class="stat">
+            <h3>🌍 Demographics</h3>
+            <p><strong>Hispanic:</strong> ${prefs.demographics.hispanic}%</p>
+            <p><strong>Black:</strong> ${prefs.demographics.black}%</p>
+            <p><strong>Population:</strong> ${prefs.population?.toLocaleString()}</p>
+          </div>`;
+        }
+
+        html += `<div class="stat">
+          <h3>🌮 Cultural Food Preferences</h3>
+          <p><strong>Reasoning:</strong> ${prefs.reasoning}</p>
+          <div>`;
+
+        prefs.foods.slice(0, 20).forEach(food => {
+          html += `<span class="badge">${food}</span>`;
+        });
+
+        html += `</div></div>`;
+
+        results.innerHTML = html;
+      } catch (error) {
+        results.innerHTML = `<h2 class="error">❌ Error</h2><pre>${error.message}</pre>`;
+      }
+    };
+
+    window.testMatchScore = async function() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<p>Calculating cultural match scores...</p>';
+
+      try {
+        // Get preferences for Jackson Heights (heavily South Asian)
+        const prefs = await getFoodPreferencesByZipCode('11372');
+
+        // Test two pantries
+        const pantry1 = {
+          name: "Pantry A (Good Match)",
+          foods: ['rice', 'lentils', 'chickpeas', 'naan', 'curry', 'halal chicken', 'basmati rice']
+        };
+
+        const pantry2 = {
+          name: "Pantry B (Poor Match)",
+          foods: ['mac and cheese', 'canned soup', 'pasta', 'white bread', 'hot dogs']
+        };
+
+        const score1 = calculateCulturalMatchScore(pantry1.foods, prefs.foods);
+        const score2 = calculateCulturalMatchScore(pantry2.foods, prefs.foods);
+
+        let html = `<h2 class="success">🎯 Cultural Match Scoring</h2>`;
+
+        html += `<div class="stat">
+          <h3>Zip Code: 11372 (Jackson Heights)</h3>
+          <p><strong>Demographics:</strong> ${prefs.reasoning}</p>
+          <p><strong>Preferred foods:</strong> ${prefs.foods.slice(0, 10).join(', ')}...</p>
+        </div>`;
+
+        html += `<div class="stat">
+          <h3>${pantry1.name}</h3>
+          <p><strong>Foods:</strong> ${pantry1.foods.join(', ')}</p>
+          <p><strong>Cultural Match Score:</strong> <span style="font-size: 1.5em; color: green;">${score1}%</span></p>
+        </div>`;
+
+        html += `<div class="stat">
+          <h3>${pantry2.name}</h3>
+          <p><strong>Foods:</strong> ${pantry2.foods.join(', ')}</p>
+          <p><strong>Cultural Match Score:</strong> <span style="font-size: 1.5em; color: red;">${score2}%</span></p>
+        </div>`;
+
+        html += `<div class="stat">
+          <h3>📊 Analysis</h3>
+          <p>Pantry A has culturally relevant foods for this South Asian neighborhood (${score1}% match).</p>
+          <p>Pantry B has generic American foods with poor cultural relevance (${score2}% match).</p>
+          <p>This demonstrates the cultural food desert problem!</p>
+        </div>`;
+
+        results.innerHTML = html;
+      } catch (error) {
+        results.innerHTML = `<h2 class="error">❌ Error</h2><pre>${error.message}</pre>`;
+      }
+    };
+  </script>
+</body>
+</html>
