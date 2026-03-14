@@ -78,6 +78,17 @@ python3 -m uvicorn app.main:app --reload
 - `POST /reports`
 - `GET /reports/{report_id}`
 
+### Resource Reviews (Lemontree ResourceReview)
+
+- `GET /resource-reviews/health` — health check
+- `POST /resource-reviews` — submit feedback (ResourceReview schema)
+- `GET /resource-reviews` — list reviews (filters: resourceId, startDate, endDate, issueCategory, etc.)
+- `GET /resource-reviews/summary` — aggregated summary
+- `GET /resource-reviews/{id}` — get single review
+- `DELETE /resource-reviews/{id}` — soft delete
+
+Storage: JSON file (`FEEDBACK_STORE_PATH` or `data/feedback_store.json`). See [FEEDBACK.md](../FEEDBACK.md) for curl examples and Supabase swap instructions.
+
 ## Feedback Payload Notes
 
 - The backend accepts **camelCase** review fields (from `details.pdf`) as well as **snake_case** equivalents.

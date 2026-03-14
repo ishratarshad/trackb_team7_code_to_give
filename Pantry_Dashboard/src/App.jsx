@@ -1,11 +1,35 @@
 import { useState, useEffect } from "react";
+<<<<<<< HEAD
 import supplyProfiles from "./data/supply_profiles.json";
+=======
+import culturalFoodProfiles from "./data/culturalFoodProfiles";
+import { calculateCultureScore } from "./lib/culturalMatch";
+import supplyProfiles from "./data/supply_profiles.json";
+import CulturalMatchCard from "./components/CulturalMatchCard";
+import FeedbackForm from "./components/FeedbackForm";
+import FeedbackSummaryCard from "./components/FeedbackSummaryCard";
+import { getResources } from "./lib/lemontreeApi";
+>>>>>>> 31acece2af70e4f5febbabf5a5b792552fd4df38
 import "./App.css";
 
 function App() {
 
+<<<<<<< HEAD
   const [shortages, setShortages] = useState([]);
   const [selectedBorough, setSelectedBorough] = useState("All");
+=======
+  const [view, setView] = useState("dashboard");
+  const [resources, setResources] = useState([]);
+  useEffect(() => {
+    getResources({ take: 50 }).then((data) => {
+      if (data?.resources?.length) setResources(data.resources);
+    }).catch(() => {});
+  }, []);
+
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState("All");
+  const [selectedMatchLevel, setSelectedMatchLevel] = useState("All");
+  const [selectedCulture, setSelectedCulture] = useState("All");
+>>>>>>> 31acece2af70e4f5febbabf5a5b792552fd4df38
   const [topFilter, setTopFilter] = useState("All");
 
   const pantries = supplyProfiles || [];
@@ -136,6 +160,40 @@ function App() {
 
     <div className="dashboard">
 
+      <div className="view-tabs">
+        <button
+          type="button"
+          className={view === "dashboard" ? "active" : ""}
+          onClick={() => setView("dashboard")}
+        >
+          Dashboard
+        </button>
+        <button
+          type="button"
+          className={view === "feedback" ? "active" : ""}
+          onClick={() => setView("feedback")}
+        >
+          Resource Feedback
+        </button>
+      </div>
+
+      {view === "feedback" ? (
+        <div className="feedback-view">
+          <h1>Resource Feedback</h1>
+          <p className="subtitle">
+            Submit and view feedback for food pantries and soup kitchens
+          </p>
+          <div className="feedback-layout">
+            <div className="feedback-form-wrapper pantry-card">
+              <FeedbackForm resources={resources} />
+            </div>
+            <div className="feedback-summary-wrapper">
+              <FeedbackSummaryCard />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
       <h1>NYC Pantry Dashboard</h1>
 
       <p className="subtitle">
@@ -247,6 +305,9 @@ function App() {
         ))}
 
       </div>
+
+        </>
+      )}
 
     </div>
 
