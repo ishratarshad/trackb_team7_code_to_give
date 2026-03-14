@@ -1,6 +1,12 @@
 # Backend (FastAPI)
 
-Minimal FastAPI service with a `/health` endpoint that verifies Supabase Postgres access.
+FastAPI service for resources, feedback/reviews, analytics, datasets, photos, and reports. It connects to Postgres and is designed to back the Pantry Dashboard UI.
+
+## Hosted URL
+
+```
+trackb-team7-code-to-give.onrender.com
+```
 
 ## Setup
 
@@ -19,6 +25,14 @@ python3 -m pip install -r requirements.txt
 DATABASE_URL="postgresql://postgres.<project-ref>:<password>@<host>:6543/postgres"
 ```
 
+Optional env vars:
+- `CORS_ORIGINS`
+- `LEMONTREE_BASE_URL`
+- `LEMONTREE_TAKE`
+- `NYC_OPEN_DATA_BASE`
+- `NYC_DEMOGRAPHICS_DATASET`
+- `NYC_OPEN_DATA_LIMIT`
+
 ## Run
 
 ```bash
@@ -29,43 +43,46 @@ python3 -m uvicorn app.main:app --reload
 
 ## Health Check
 
+`GET /health` returns `{"status":"ok","db":"ok"}` when the DB is reachable.
+
+## API Summary
+
 - `GET /health`
-  - Returns `{"status":"ok","db":"ok"}` when Supabase is reachable.
-  - Returns `{"status":"degraded","db":"error",...}` on failure.
+- `POST /pantries`
+- `GET /pantries`
+- `GET /pantries/{pantry_id}`
+- `GET /resources`
+- `GET /resources/{resource_id}`
+- `POST /feedback`
+- `GET /feedback`
+- `GET /analytics/summary`
+- `GET /analytics/issues`
+- `GET /analytics/trends`
+- `GET /analytics/heatmap`
+- `GET /analytics/insights`
+- `GET /pantries/{pantry_id}/supply`
+- `POST /photos`
+- `GET /pantries/{pantry_id}/photos`
+- `POST /photos/{photo_id}/classify`
+- `GET /datasets`
+- `GET /datasets/{dataset_id}`
+- `GET /datasets/overlay`
+- `POST /reports`
+- `GET /reports/{report_id}`
 
-## MVP Endpoints
+## Feedback Payload Notes
 
-- `GET /health` — health + DB check
-- `POST /pantries` — create a pantry
-- `GET /pantries` — list pantries
-- `GET /pantries/{pantry_id}` — pantry details
-- `POST /feedback` — create a feedback entry
-- `GET /feedback` — list feedback with optional filters
-- `GET /analytics/summary` — basic counts and averages
-- `GET /analytics/issues` — issue counts
-- `GET /analytics/trends` — time‑series metrics
-- `GET /analytics/heatmap` — map aggregates
-- `GET /pantries/{pantry_id}/supply` — normalized supply profile
-- `GET /datasets` — list public datasets
-- `GET /datasets/{dataset_id}` — dataset detail + metrics
-- `POST /reports` — generate a report
-- `GET /reports/{report_id}` — fetch report metadata
+- The backend accepts **camelCase** review fields (from `details.pdf`) as well as **snake_case** equivalents.
+- Responses for feedback default to **camelCase** (e.g., `resourceId`, `waitTimeMinutes`, `informationAccurate`, `photoPublic`, `shareTextWithResource`, `createdAt`).
+- Required fields: `resourceId` (or `pantry_id`), `rating`, `resource_type`.
 
 ## Database Schema
 
-See `backend/db/schema.sql` for the minimal tables and indexes.
-
-## Tests
-
-```bash
-cd backend
-source .venv/bin/activate
-python -m pytest
-```
+See `backend/db/schema.sql` for tables, indexes, and enums.
 
 ## External Data Ingestion
 
-Run one-off ingestion (requires `DATABASE_URL`):
+One-off ingestion (requires `DATABASE_URL`):
 
 ```bash
 cd backend
@@ -80,9 +97,24 @@ Run on an interval (minutes):
 python -m ingest.run_ingestion --interval-min 1440
 ```
 
-Optional env vars:
-- `LEMONTREE_BASE_URL`
-- `LEMONTREE_TAKE`
-- `NYC_OPEN_DATA_BASE`
-- `NYC_DEMOGRAPHICS_DATASET`
-- `NYC_OPEN_DATA_LIMIT`
+## Tests
+
+```bash
+cd backend
+source .venv/bin/activate
+python -m pytest
+```
+
+## Render Start Command
+
+If the service root is `backend/`, use:
+
+```bash
+gunicorn -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:$PORT
+```
+
+Or:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
