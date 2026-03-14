@@ -64,6 +64,7 @@ python3 -m uvicorn app.main:app --reload
 - `GET /analytics/trends`
 - `GET /analytics/heatmap`
 - `GET /analytics/insights`
+- `GET /analytics/shortage`
 - `GET /pantries/{pantry_id}/supply`
 - `POST /photos`
 - `GET /pantries/{pantry_id}/photos`
@@ -71,6 +72,9 @@ python3 -m uvicorn app.main:app --reload
 - `GET /datasets`
 - `GET /datasets/{dataset_id}`
 - `GET /datasets/overlay`
+- `GET /demographics/summary`
+- `GET /demographics/tract/{geoid}`
+- `GET /demographics/search`
 - `POST /reports`
 - `GET /reports/{report_id}`
 
@@ -79,6 +83,34 @@ python3 -m uvicorn app.main:app --reload
 - The backend accepts **camelCase** review fields (from `details.pdf`) as well as **snake_case** equivalents.
 - Responses for feedback default to **camelCase** (e.g., `resourceId`, `waitTimeMinutes`, `informationAccurate`, `photoPublic`, `shareTextWithResource`, `createdAt`).
 - Required fields: `resourceId` (or `pantry_id`), `rating`, `resource_type`.
+
+## Shortage Score
+
+`GET /analytics/shortage?neighborhood=Bronx&limit=10`
+
+Returns foods most needed but least available:
+
+```json
+{
+  "neighborhood": "Bronx",
+  "total_pantries": 45,
+  "shortages": [
+    {
+      "item": "fresh vegetables",
+      "demand_mentions": 23,
+      "pantries_requesting": 12,
+      "pantries_supplying": 5,
+      "supply_pct": 11.1,
+      "shortage_score": 88.9
+    }
+  ]
+}
+```
+
+**Methodology:**
+- **Demand:** Count of `items_unavailable` mentions in feedback
+- **Supply:** Binary presence per pantry (not photo count)
+- **Score:** `normalized_demand - supply_pct` (higher = more shortage)
 
 ## Database Schema
 
@@ -93,6 +125,8 @@ cd backend
 source .venv/bin/activate
 python -m ingest.run_ingestion --lemontree
 python -m ingest.run_ingestion --nyc
+python -m ingest.run_ingestion --acs    # ACS demographics from local CSVs
+python -m ingest.run_ingestion --usda   # USDA Food Access from local CSVs
 ```
 
 Run on an interval (minutes):

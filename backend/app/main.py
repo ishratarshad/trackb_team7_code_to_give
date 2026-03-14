@@ -853,3 +853,277 @@ async def fusion_lemontree_resources_with_demographics(
 
     resources_payload["resources"] = fused
     return resources_payload
+
+
+@app.get("/demographics/tract/{geoid}")
+async def get_demographics_by_tract(
+    request: Request,
+    geoid: str,
+) -> dict:
+    """
+    Get demographics data for a specific census tract (GEOID).
+
+    Returns combined ACS demographics and USDA food access data if available.
+    """
+    async with request.app.state.pool.acquire() as conn:
+        # Get all datasets that have data for this GEOID
+        rows = await conn.fetch(
+            """
+            select
+                pd.name as dataset_name,
+                pd.source as dataset_source,
+                pdm.metrics,
+                pdm.recorded_at
+            from public_dataset_metrics pdm
+            join public_datasets pd on pd.id = pdm.dataset_id
+            where pdm.geo_unit_id = $1
+            order by pdm.recorded_at desc
+            """,
+            geoid,
+        )
+
+    if not rows:
+        raise HTTPException(status_code=404, detail=f"No demographics data found for tract {geoid}")
+
+    result = {
+        "geoid": geoid,
+        "datasets": {},
+    }
+
+    for row in rows:
+        dataset_name = row["dataset_name"]
+        if dataset_name not in result["datasets"]:
+            result["datasets"][dataset_name] = {
+                "source": row["dataset_source"],
+                "metrics": row["metrics"],
+                "recorded_at": row["recorded_at"].isoformat(),
+            }
+
+    return result
+
+
+@app.get("/demographics/search")
+async def search_demographics(
+    request: Request,
+    zip_code: str | None = None,
+    state: str | None = None,
+    limit: int = Query(50, ge=1, le=500),
+) -> list[dict]:
+    """
+    Search demographics data by zip code prefix or state.
+
+    Returns a list of matching census tracts with their demographics.
+    """
+    conditions = []
+    values = []
+
+    if zip_code:
+        # Match tracts that start with this zip code prefix (first 5 chars of GEOID)
+        values.append(f"{zip_code}%")
+        conditions.append(f"pdm.geo_unit_id like ${len(values)}")
+
+    if state:
+        # Match by state in the metrics JSON
+        values.append(state.upper())
+        conditions.append(f"pdm.metrics->>'state' ilike ${len(values)}")
+
+    where_sql = f"where {' and '.join(conditions)}" if conditions else ""
+
+    values.extend([limit])
+
+    query = f"""
+        select distinct on (pdm.geo_unit_id)
+            pdm.geo_unit_id as geoid,
+            pd.name as dataset_name,
+            pdm.metrics
+        from public_dataset_metrics pdm
+        join public_datasets pd on pd.id = pdm.dataset_id
+        {where_sql}
+        order by pdm.geo_unit_id, pdm.recorded_at desc
+        limit ${len(values)}
+    """
+
+    async with request.app.state.pool.acquire() as conn:
+        rows = await conn.fetch(query, *values)
+
+    return [
+        {
+            "geoid": row["geoid"],
+            "dataset": row["dataset_name"],
+            "metrics": row["metrics"],
+        }
+        for row in rows
+    ]
+
+
+@app.get("/analytics/shortage")
+async def analytics_shortage(
+    request: Request,
+    neighborhood: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+) -> dict:
+    """
+    Calculate shortage scores: foods most requested but least available.
+
+    Shortage = demand (items_unavailable mentions) vs supply (pantries stocking item)
+
+    Returns items ranked by shortage score (high = most needed, least available).
+    """
+    async with request.app.state.pool.acquire() as conn:
+        # 1. Get demand: aggregate items_unavailable mentions
+        demand_query = """
+            select
+                lower(trim(item)) as item,
+                count(*) as demand_count,
+                count(distinct f.pantry_id) as pantries_requesting
+            from feedback f
+            join pantries p on p.id = f.pantry_id
+            cross join lateral unnest(
+                string_to_array(
+                    regexp_replace(f.items_unavailable, '[,;/]', ',', 'g'),
+                    ','
+                )
+            ) as item
+            where f.items_unavailable is not null
+              and trim(item) != ''
+              {neighborhood_filter}
+            group by lower(trim(item))
+            having count(*) >= 1
+            order by count(*) desc
+        """.format(
+            neighborhood_filter="and p.neighborhood = $1" if neighborhood else ""
+        )
+
+        if neighborhood:
+            demand_rows = await conn.fetch(demand_query, neighborhood)
+        else:
+            demand_rows = await conn.fetch(demand_query)
+
+        # 2. Get supply: which pantries have which food categories
+        # Use supply_profiles if available, fall back to photo tags
+        supply_query = """
+            select
+                p.id as pantry_id,
+                p.neighborhood,
+                coalesce(
+                    sp.normalized_foods,
+                    (select jsonb_agg(distinct tag)
+                     from pantry_photos pp,
+                     lateral jsonb_array_elements_text(pp.normalized_tags) as tag
+                     where pp.pantry_id = p.id),
+                    '[]'::jsonb
+                ) as foods
+            from pantries p
+            left join supply_profiles sp on sp.pantry_id = p.id
+            {neighborhood_filter}
+        """.format(
+            neighborhood_filter="where p.neighborhood = $1" if neighborhood else ""
+        )
+
+        if neighborhood:
+            supply_rows = await conn.fetch(supply_query, neighborhood)
+        else:
+            supply_rows = await conn.fetch(supply_query)
+
+        # Count total pantries for percentage calc
+        total_pantries = len(supply_rows)
+
+        # Build supply index: item -> set of pantry_ids that have it
+        supply_index: dict[str, set] = {}
+        for row in supply_rows:
+            foods = row["foods"] or []
+            if isinstance(foods, str):
+                import json
+                foods = json.loads(foods)
+            for food in foods:
+                if isinstance(food, dict):
+                    food_name = food.get("name", "").lower()
+                else:
+                    food_name = str(food).lower()
+                if food_name:
+                    if food_name not in supply_index:
+                        supply_index[food_name] = set()
+                    supply_index[food_name].add(row["pantry_id"])
+
+        # 3. Calculate shortage scores
+        shortages = []
+        for row in demand_rows:
+            item = row["item"]
+            demand_count = row["demand_count"]
+
+            # Find supply - check for exact match or partial match
+            supply_count = 0
+            matched_supply_key = None
+            for supply_item, pantry_set in supply_index.items():
+                if item in supply_item or supply_item in item:
+                    supply_count = max(supply_count, len(pantry_set))
+                    matched_supply_key = supply_item
+
+            # Supply percentage (what % of pantries have this item)
+            supply_pct = (supply_count / total_pantries * 100) if total_pantries > 0 else 0
+
+            # Shortage score: high demand + low supply = high shortage
+            # Normalize demand to 0-100 scale, then: shortage = demand_score - supply_pct
+            max_demand = demand_rows[0]["demand_count"] if demand_rows else 1
+            demand_score = (demand_count / max_demand) * 100
+
+            shortage_score = demand_score - supply_pct
+
+            shortages.append({
+                "item": item,
+                "demand_mentions": demand_count,
+                "pantries_requesting": row["pantries_requesting"],
+                "pantries_supplying": supply_count,
+                "supply_pct": round(supply_pct, 1),
+                "shortage_score": round(shortage_score, 1),
+            })
+
+        # Sort by shortage score (highest first)
+        shortages.sort(key=lambda x: x["shortage_score"], reverse=True)
+
+        return {
+            "neighborhood": neighborhood,
+            "total_pantries": total_pantries,
+            "shortages": shortages[:limit],
+            "methodology": {
+                "demand": "Count of items_unavailable mentions in feedback",
+                "supply": "Binary presence in supply profiles or photo tags",
+                "score": "Normalized demand (0-100) minus supply percentage",
+            },
+        }
+
+
+@app.get("/demographics/summary")
+async def demographics_summary(request: Request) -> dict:
+    """
+    Get a summary of available demographics datasets.
+    """
+    query = """
+        select
+            pd.id,
+            pd.name,
+            pd.source,
+            pd.description,
+            count(distinct pdm.geo_unit_id) as tract_count,
+            max(pdm.recorded_at) as last_updated
+        from public_datasets pd
+        left join public_dataset_metrics pdm on pdm.dataset_id = pd.id
+        group by pd.id, pd.name, pd.source, pd.description
+        order by pd.name
+    """
+    async with request.app.state.pool.acquire() as conn:
+        rows = await conn.fetch(query)
+
+    return {
+        "datasets": [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "source": row["source"],
+                "description": row["description"],
+                "tract_count": row["tract_count"],
+                "last_updated": row["last_updated"].isoformat() if row["last_updated"] else None,
+            }
+            for row in rows
+        ]
+    }
