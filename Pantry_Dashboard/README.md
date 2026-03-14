@@ -1,16 +1,41 @@
-# React + Vite
+# Lemontree Pantry Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend-only prototype for exploring food pantries and meal services with a synchronized map, compact list view, structured resource details, and local bookmarks.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Next.js App Router
+- React + TypeScript
+- Tailwind CSS
+- React Query
+- Mapbox via `react-map-gl`
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Install dependencies:
 
-## Expanding the ESLint configuration
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. Create `.env.local`:
+
+```bash
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_public_token
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=optional_google_static_street_view_key
+LEMONTREE_API_BASE_URL=https://platform.foodhelpline.org
+```
+
+3. Run the app:
+
+```bash
+npm run dev
+```
+
+## Notes
+
+- The app is intentionally limited to trustworthy metadata returned by the public Lemontree resource API.
+- Review-dependent features, mock review data, demographic overlays, and speculative analytics have been removed.
+- The primary product now focuses on map exploration, list browsing, filtering, pagination, expanded resource details, and bookmarks.
+- If `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is missing, resource cards and the detail drawer fall back to Lemontree-hosted images or a neutral placeholder.
+- If `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` is missing, the dashboard still works and shows a setup fallback in the map panel instead of failing.
