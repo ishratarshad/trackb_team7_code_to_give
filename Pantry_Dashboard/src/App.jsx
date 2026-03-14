@@ -1,19 +1,34 @@
-import { useState } from "react";
-import culturalFoodProfiles from "./data/culturalFoodProfiles";
-import { calculateCultureScore } from "./lib/culturalMatch";
+import { useState, useEffect } from "react";
 import supplyProfiles from "./data/supply_profiles.json";
-import CulturalMatchCard from "./components/CulturalMatchCard";
 import "./App.css";
 
 function App() {
 
-  const [selectedNeighborhood, setSelectedNeighborhood] = useState("All");
-  const [selectedMatchLevel, setSelectedMatchLevel] = useState("All");
-  const [selectedCulture, setSelectedCulture] = useState("All");
+  const [shortages, setShortages] = useState([]);
+  const [selectedBorough, setSelectedBorough] = useState("All");
   const [topFilter, setTopFilter] = useState("All");
 
-  const pantries = supplyProfiles.pantries || [];
-  const totalImages = supplyProfiles.total_images || 0;
+  const pantries = supplyProfiles || [];
+  const totalImages = pantries.length;
+
+  // Fetch shortage analytics from backend
+  useEffect(() => {
+
+    const boroughParam =
+      selectedBorough === "All"
+        ? ""
+        : `?neighborhood=${selectedBorough}`;
+
+    fetch(`http://localhost:8000/analytics/shortage${boroughParam}`)
+      .then(res => res.json())
+      .then(data => {
+        setShortages(data.shortages || []);
+      })
+      .catch(err => {
+        console.error("Shortage API error:", err);
+      });
+
+  }, [selectedBorough]);
 
   function normalizeFood(food) {
 
@@ -49,37 +64,12 @@ function App() {
     return item;
   }
 
-
   const pantryResults = pantries.map((p) => {
 
-    const foods = p.foods || [];
+    const foods = (p.normalized_foods || []).map(f => f.normalized);
+
     const normalizedFoods = foods.map(normalizeFood);
     const uniqueFoods = [...new Set(normalizedFoods)];
-
-    console.log("Pantry foods:", uniqueFoods);
-
-    const culturalScores = {};
-
-    Object.entries(culturalFoodProfiles).forEach(([culture, cultureFoods]) => {
-
-      culturalScores[culture] =
-        calculateCultureScore(uniqueFoods, cultureFoods);
-
-    });
-
-    const bestCultureEntry =
-      Object.entries(culturalScores)
-      .sort((a,b)=> b[1]-a[1])[0] || ["Unknown",0];
-
-    const bestCulture = bestCultureEntry[0];
-    const score = bestCultureEntry[1];
-
-    const missing =
-      culturalFoodProfiles[bestCulture]
-        ? culturalFoodProfiles[bestCulture].filter(
-            food => !uniqueFoods.includes(food)
-          )
-        : [];
 
     const foodCounts = {};
 
@@ -92,87 +82,31 @@ function App() {
       .slice(0,3);
 
     return {
-      pantry: p.pantry_name || "Unknown Pantry",
+      pantry: p.pantry_id || "Unknown Pantry",
       neighborhood: p.neighborhood || "Unknown",
       zipcode: p.zipcode || "",
-      culture: bestCulture,
-      score,
-      missing,
+      foods: uniqueFoods,
       topFoods
     };
 
   });
 
-  const neighborhoodScores = {};
-
-  pantryResults.forEach(p => {
-
-    const neighborhood = p.neighborhood;
-
-    if (!neighborhoodScores[neighborhood]) {
-
-      neighborhoodScores[neighborhood] = {
-        totalScore: 0,
-        count: 0
-      };
-
-    }
-
-    neighborhoodScores[neighborhood].totalScore += p.score;
-    neighborhoodScores[neighborhood].count += 1;
-
-  });
-
-  const neighborhoodAverages =
-    Object.entries(neighborhoodScores).map(
-      ([name,data]) => ({
-
-        name,
-        avgScore: data.count
-          ? data.totalScore / data.count
-          : 0
-
-      })
-    );
-
-  neighborhoodAverages.sort((a,b)=> a.avgScore - b.avgScore);
-
-  const neighborhoods = [
+  const boroughs = [
     "All",
-    ...new Set(
-      pantryResults.map(p => p.neighborhood)
-    )
-  ];
-
-  const cultures = [
-    "All",
-    ...Object.keys(culturalFoodProfiles)
+    "Bronx",
+    "Brooklyn",
+    "Manhattan",
+    "Queens",
+    "Staten Island"
   ];
 
   const filteredPantries = pantryResults.filter(p => {
 
-    const neighborhood = p.neighborhood;
+    const boroughMatch =
+      selectedBorough === "All" ||
+      p.neighborhood === selectedBorough;
 
-    const neighborhoodMatch =
-      selectedNeighborhood === "All" ||
-      neighborhood === selectedNeighborhood;
-
-    const cultureMatch =
-      selectedCulture === "All" ||
-      p.culture === selectedCulture;
-
-    const matchLevel =
-      p.score >= 80
-        ? "High"
-        : p.score >= 40
-        ? "Moderate"
-        : "Low";
-
-    const matchFilter =
-      selectedMatchLevel === "All" ||
-      matchLevel === selectedMatchLevel;
-
-    return neighborhoodMatch && matchFilter && cultureMatch;
+    return boroughMatch;
 
   });
 
@@ -182,7 +116,8 @@ function App() {
 
     sortedPantries =
       sortedPantries
-      .sort((a,b)=> b.score - a.score)
+      .slice()
+      .sort((a,b)=> b.topFoods.length - a.topFoods.length)
       .slice(0,20);
 
   }
@@ -191,7 +126,8 @@ function App() {
 
     sortedPantries =
       sortedPantries
-      .sort((a,b)=> a.score - b.score)
+      .slice()
+      .sort((a,b)=> a.topFoods.length - b.topFoods.length)
       .slice(0,20);
 
   }
@@ -203,7 +139,7 @@ function App() {
       <h1>NYC Pantry Dashboard</h1>
 
       <p className="subtitle">
-        Cultural Food Match Analysis based on AI-detected pantry supply
+        Food Supply Analysis based on AI-detected pantry inventory
       </p>
 
       <div className="summary-panel">
@@ -222,38 +158,15 @@ function App() {
 
       <div className="filter-panel">
 
-        <label>Neighborhood</label>
+        <label>Borough</label>
 
         <select
-          value={selectedNeighborhood}
-          onChange={(e)=>setSelectedNeighborhood(e.target.value)}
+          value={selectedBorough}
+          onChange={(e)=>setSelectedBorough(e.target.value)}
         >
-          {neighborhoods.map((n,i)=>(
-            <option key={i}>{n}</option>
+          {boroughs.map((b,i)=>(
+            <option key={i}>{b}</option>
           ))}
-        </select>
-
-        <label>Culture</label>
-
-        <select
-          value={selectedCulture}
-          onChange={(e)=>setSelectedCulture(e.target.value)}
-        >
-          {cultures.map((c,i)=>(
-            <option key={i}>{c}</option>
-          ))}
-        </select>
-
-        <label>Cultural Match</label>
-
-        <select
-          value={selectedMatchLevel}
-          onChange={(e)=>setSelectedMatchLevel(e.target.value)}
-        >
-          <option>All</option>
-          <option>High</option>
-          <option>Moderate</option>
-          <option>Low</option>
         </select>
 
         <label>Top Results</label>
@@ -269,16 +182,37 @@ function App() {
 
       </div>
 
-      <div className="pantry-card">
+      {/* Shortage Analytics Section */}
 
-        <h3>Neighborhood Cultural Food Access</h3>
+      <div className="summary-card">
 
-        <ul className="neighborhood-list">
-          {neighborhoodAverages.slice(0,10).map((n,i)=>(
-            <li key={i}>
-              {n.name} — {n.avgScore.toFixed(1)}%
-            </li>
-          ))}
+        <h3>Top Food Shortages</h3>
+
+        {shortages.length === 0 ? (
+          <p>No shortage data available</p>
+        ) : (
+          <ul>
+            {shortages.slice(0,5).map((s,i)=>(
+              <li key={i}>
+                {s.item} — shortage score {s.shortage_score}
+              </li>
+            ))}
+          </ul>
+        )}
+
+      </div>
+
+      <div className="summary-card">
+
+        <h3>Food Availability Insights</h3>
+
+        <ul>
+          <li>Fresh Produce → 63.8%</li>
+          <li>Protein → 60.1%</li>
+          <li>Dairy → 61.5%</li>
+          <li>Grains → 93.7%</li>
+          <li>Halal Options → 2.1%</li>
+          <li>Kosher Options → 1.8%</li>
         </ul>
 
       </div>
@@ -292,35 +226,8 @@ function App() {
             <h3>{pantry.pantry}</h3>
 
             <p style={{fontWeight:"bold"}}>
-              {selectedCulture === "All"
-                ? `${pantry.culture} Cultural Match`
-                : `${selectedCulture} Cultural Match`}
+              Borough: {pantry.neighborhood}
             </p>
-
-            <CulturalMatchCard score={pantry.score} />
-
-            {pantry.score < 40 && (
-              <p style={{
-                color:"#d9534f",
-                fontWeight:"bold",
-                marginTop:"8px"
-              }}>
-                ⚠ Low Cultural Food Access
-              </p>
-            )}
-
-            <p style={{
-              fontWeight:"bold",
-              marginTop:"10px"
-            }}>
-              Missing culturally relevant foods:
-            </p>
-
-            <ul>
-              {pantry.missing.map((food,i)=>(
-                <li key={i}>{food}</li>
-              ))}
-            </ul>
 
             <p style={{
               fontWeight:"bold",
