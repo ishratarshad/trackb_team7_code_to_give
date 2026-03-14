@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 
+import { deriveBorough, getBoroughLabel } from '@/lib/boroughs';
 import type {
   RawImage,
   RawLocalizedValue,
@@ -211,6 +212,13 @@ export function normalizeResource(raw: RawResource): Resource {
   const address = buildAddress(raw);
   const shifts = raw.shifts ?? [];
   const status = getStatus(occurrences, shifts);
+  const borough = deriveBorough({
+    city: raw.city ?? null,
+    state: raw.state ?? null,
+    zipCode: raw.zipCode ?? null,
+    address: address.address,
+    streetAddress: address.streetAddress,
+  });
 
   return {
     id: String(raw.id ?? ''),
@@ -223,6 +231,8 @@ export function normalizeResource(raw: RawResource): Resource {
     city: raw.city ?? null,
     state: raw.state ?? null,
     zipCode: raw.zipCode ?? null,
+    borough,
+    boroughLabel: borough ? getBoroughLabel(borough) : null,
     coordinates,
     timezone: raw.timezone ?? null,
     phone: getPhone(raw),

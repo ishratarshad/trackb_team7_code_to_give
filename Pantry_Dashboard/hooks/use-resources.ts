@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 
 import { resourceService } from '@/services/resource-service';
 import { reviewService } from '@/services/review-service';
-import type { Bounds, ResourceQueryInput, ReviewPayload } from '@/types/resources';
+import type { Borough, Bounds, ResourceQueryInput, ReviewPayload } from '@/types/resources';
 
 export function useInfiniteResources(input: ResourceQueryInput) {
   return useInfiniteQuery({
@@ -31,10 +31,10 @@ export function useResource(resourceId: string | null) {
   });
 }
 
-export function useMarkers(bounds: Bounds | null) {
+export function useMarkers(bounds: Bounds | null, borough?: Borough | '') {
   return useQuery({
-    queryKey: ['markers', bounds],
-    queryFn: ({ signal }) => resourceService.getMarkers(bounds as Bounds, signal),
+    queryKey: ['markers', bounds, borough],
+    queryFn: ({ signal }) => resourceService.getMarkers(bounds as Bounds, borough, signal),
     enabled: Boolean(bounds),
   });
 }
@@ -43,11 +43,12 @@ export function useResourcesWithinBounds(
   bounds: Bounds | null,
   take = 8,
   cursor?: string | null,
+  borough?: Borough | '',
 ) {
   return useQuery({
-    queryKey: ['resources-within-bounds', bounds, take, cursor],
+    queryKey: ['resources-within-bounds', bounds, take, cursor, borough],
     queryFn: ({ signal }) =>
-      resourceService.getResourcesWithinBounds(bounds as Bounds, take, cursor, signal),
+      resourceService.getResourcesWithinBounds(bounds as Bounds, take, cursor, borough, signal),
     enabled: Boolean(bounds),
   });
 }

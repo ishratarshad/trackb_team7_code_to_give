@@ -25,6 +25,14 @@ export type ResourceStatus = {
   source: 'occurrences' | 'shifts' | 'unavailable';
 };
 
+export type Borough =
+  | 'manhattan'
+  | 'brooklyn'
+  | 'queens'
+  | 'bronx'
+  | 'staten-island'
+  | 'unknown';
+
 export type Resource = {
   id: string;
   name: string;
@@ -36,6 +44,8 @@ export type Resource = {
   city: string | null;
   state: string | null;
   zipCode: string | null;
+  borough: Borough | null;
+  boroughLabel: string | null;
   coordinates: Coordinates | null;
   timezone: string | null;
   phone: string | null;
@@ -97,6 +107,7 @@ export type ResourceQueryInput = {
   lng?: number;
   location?: string;
   text?: string;
+  borough?: Borough;
   resourceTypeId?: string;
   tagId?: string;
   occurrencesWithin?: string;
@@ -194,6 +205,8 @@ export type BookmarkedResource = Pick<
   | 'streetAddress'
   | 'cityStateZip'
   | 'zipCode'
+  | 'borough'
+  | 'boroughLabel'
   | 'coordinates'
   | 'phone'
   | 'website'
@@ -212,6 +225,7 @@ export type BookmarkedResource = Pick<
 export type DashboardFilterState = {
   location: string;
   searchText: string;
+  borough: '' | Borough;
   resourceTypeId: string;
   tagId: string;
   timeframe: TimeframeOption;

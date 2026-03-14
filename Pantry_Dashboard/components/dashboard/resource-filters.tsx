@@ -3,6 +3,7 @@
 import { ChevronDown, Filter, Search, SlidersHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import { BOROUGH_FILTER_OPTIONS } from '@/lib/boroughs';
 import { cn } from '@/lib/cn';
 import type { DashboardFilterState } from '@/types/resources';
 
@@ -55,12 +56,13 @@ export function ResourceFilters({
   const activeAdvancedCount = useMemo(
     () =>
       [
+        Boolean(filters.borough),
         Boolean(filters.resourceTypeId),
         Boolean(filters.tagId),
         filters.openSoonOnly,
         !filters.syncListToMap,
       ].filter(Boolean).length,
-    [filters.openSoonOnly, filters.resourceTypeId, filters.syncListToMap, filters.tagId],
+    [filters.borough, filters.openSoonOnly, filters.resourceTypeId, filters.syncListToMap, filters.tagId],
   );
 
   const [showAdvanced, setShowAdvanced] = useState(activeAdvancedCount > 0);
@@ -175,7 +177,14 @@ export function ResourceFilters({
 
       {showAdvanced ? (
         <div className="rounded-[24px] border border-line/80 bg-white/75 p-4">
-          <div className="grid gap-2.5 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2.5 lg:grid-cols-2 xl:grid-cols-4">
+            <FilterSelect
+              label="Borough"
+              value={filters.borough}
+              options={BOROUGH_FILTER_OPTIONS}
+              includeAllOption={false}
+              onChange={(value) => onChange({ borough: value as DashboardFilterState['borough'] })}
+            />
             <FilterSelect
               label="Service type"
               value={filters.resourceTypeId}

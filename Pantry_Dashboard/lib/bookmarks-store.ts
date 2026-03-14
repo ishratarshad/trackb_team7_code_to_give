@@ -98,6 +98,8 @@ function toBookmarkedResource(resource: Resource | BookmarkedResource): Bookmark
     streetAddress: resource.streetAddress,
     cityStateZip: resource.cityStateZip,
     zipCode: resource.zipCode,
+    borough: resource.borough,
+    boroughLabel: resource.boroughLabel,
     coordinates: resource.coordinates,
     phone: resource.phone,
     website: resource.website,

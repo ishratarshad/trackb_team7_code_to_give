@@ -13,6 +13,9 @@ export function InsightsView({
   reviewPayloadById,
   timeframe,
   scopeLabel,
+  activeBoroughLabel,
+  insightsScope,
+  onInsightsScopeChange,
   isLoading,
   onOpenResource,
 }: {
@@ -20,6 +23,9 @@ export function InsightsView({
   reviewPayloadById: Map<string, ReviewPayload>;
   timeframe: TimeframeOption;
   scopeLabel: string;
+  activeBoroughLabel: string;
+  insightsScope: 'all' | 'bookmarked';
+  onInsightsScopeChange: (scope: 'all' | 'bookmarked') => void;
   isLoading?: boolean;
   onOpenResource: (resourceId: string) => void;
 }) {
@@ -42,8 +48,16 @@ export function InsightsView({
   if (!resources.length) {
     return (
       <EmptyState
-        title="No resources in scope for insights"
-        description="Adjust the current filters or page through more resources to populate the structured dashboard."
+        title={
+          insightsScope === 'bookmarked'
+            ? 'No bookmarked resources match the current filters'
+            : 'No resources in scope for insights'
+        }
+        description={
+          insightsScope === 'bookmarked'
+            ? 'Try widening the borough or other filters, or bookmark more resources from Explore.'
+            : 'Adjust the current filters or page through more resources to populate the structured dashboard.'
+        }
       />
     );
   }
@@ -61,10 +75,43 @@ export function InsightsView({
               These summaries are based on structured visit records only for {timeframeLabel.toLowerCase()} across {resources.length} loaded resources.
             </p>
             <p className="mt-2 text-sm leading-6 text-slate">{scopeLabel}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate">
+                Borough: {activeBoroughLabel}
+              </span>
+              <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate">
+                Scope: {insightsScope === 'bookmarked' ? 'Bookmarked only' : 'All filtered resources'}
+              </span>
+            </div>
           </div>
 
-          <div className="rounded-full bg-mist px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate">
-            No raw review text shown
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <div className="rounded-full border border-line/80 bg-white/85 p-1">
+              <button
+                type="button"
+                onClick={() => onInsightsScopeChange('all')}
+                className={cn(
+                  'rounded-full px-4 py-2 text-sm font-semibold transition',
+                  insightsScope === 'all' ? 'bg-pine text-white' : 'text-slate',
+                )}
+              >
+                All filtered resources
+              </button>
+              <button
+                type="button"
+                onClick={() => onInsightsScopeChange('bookmarked')}
+                className={cn(
+                  'rounded-full px-4 py-2 text-sm font-semibold transition',
+                  insightsScope === 'bookmarked' ? 'bg-pine text-white' : 'text-slate',
+                )}
+              >
+                Bookmarked only
+              </button>
+            </div>
+
+            <div className="rounded-full bg-mist px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate">
+              No raw review text shown
+            </div>
           </div>
         </div>
 

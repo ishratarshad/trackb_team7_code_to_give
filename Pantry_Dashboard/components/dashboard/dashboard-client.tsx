@@ -16,6 +16,7 @@ import { ResourceDetailDrawer } from '@/components/resources/resource-detail-dra
 import { ResourceCard } from '@/components/resources/resource-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingCard } from '@/components/ui/loading-card';
+import { useBookmarks } from '@/hooks/use-bookmarks';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import {
   useInfiniteResources,
@@ -25,8 +26,10 @@ import {
   useReviewSummaries,
 } from '@/hooks/use-resources';
 import { createTimeframedSummaryMap } from '@/lib/analytics';
+import { getBoroughLabel, matchesBorough } from '@/lib/boroughs';
 import { distanceInMiles, roundBounds } from '@/lib/geo';
 import type {
+  Borough,
   Bounds,
   Coordinates,
   DashboardFilterState,
@@ -59,6 +62,7 @@ const HIGH_FAILURE_THRESHOLD = 30;
 const INACCURATE_THRESHOLD = 20;
 
 type DashboardView = 'explore' | 'insights';
+type InsightsScope = 'all' | 'bookmarked';
 
 type MapViewportState = {
   bounds: Bounds | null;
@@ -68,6 +72,7 @@ type MapViewportState = {
 const DEFAULT_FILTERS: DashboardFilterState = {
   location: '',
   searchText: '',
+  borough: '',
   resourceTypeId: '',
   tagId: '',
   timeframe: '30d',
@@ -80,6 +85,17 @@ const DEFAULT_FILTERS: DashboardFilterState = {
   sort: 'alpha-asc',
   nearbyRadiusMiles: 2,
 };
+
+function isBorough(value: string | null): value is Borough {
+  return (
+    value === 'manhattan' ||
+    value === 'brooklyn' ||
+    value === 'queens' ||
+    value === 'bronx' ||
+    value === 'staten-island' ||
+    value === 'unknown'
+  );
+}
 
 function isResourceSort(value: string | null): value is ResourceListSort {
   return (
@@ -123,11 +139,13 @@ function readNumberParam(
 function readFiltersFromSearchParams(searchParams: ReadonlyURLSearchParams): DashboardFilterState {
   const sort = searchParams.get('sort');
   const timeframe = searchParams.get('timeframe');
+  const borough = searchParams.get('borough');
 
   return {
     ...DEFAULT_FILTERS,
     location: searchParams.get('location') ?? '',
     searchText: searchParams.get('text') ?? '',
+    borough: isBorough(borough) ? borough : '',
     resourceTypeId: searchParams.get('resourceTypeId') ?? '',
     tagId: searchParams.get('tagId') ?? '',
     timeframe: isTimeframeOption(timeframe) ? timeframe : DEFAULT_FILTERS.timeframe,
@@ -150,13 +168,19 @@ function readDashboardView(searchParams: ReadonlyURLSearchParams): DashboardView
   return searchParams.get('view') === 'insights' ? 'insights' : 'explore';
 }
 
+function readInsightsScope(searchParams: ReadonlyURLSearchParams): InsightsScope {
+  return searchParams.get('insightsScope') === 'bookmarked' ? 'bookmarked' : 'all';
+}
+
 function createDashboardSearchParams({
   filters,
   view,
+  insightsScope,
   resourceId,
 }: {
   filters: DashboardFilterState;
   view: DashboardView;
+  insightsScope: InsightsScope;
   resourceId?: string | null;
 }) {
   const params = new URLSearchParams();
@@ -167,6 +191,10 @@ function createDashboardSearchParams({
 
   if (filters.searchText) {
     params.set('text', filters.searchText);
+  }
+
+  if (filters.borough) {
+    params.set('borough', filters.borough);
   }
 
   if (filters.resourceTypeId) {
@@ -215,6 +243,10 @@ function createDashboardSearchParams({
 
   if (view === 'insights') {
     params.set('view', 'insights');
+  }
+
+  if (insightsScope === 'bookmarked') {
+    params.set('insightsScope', 'bookmarked');
   }
 
   if (resourceId) {
@@ -333,6 +365,10 @@ function matchesLocation(resource: Resource, query: string) {
   return haystack.includes(query);
 }
 
+function matchesSelectedBorough(resource: Resource, borough: DashboardFilterState['borough']) {
+  return matchesBorough(resource, borough);
+}
+
 function matchesStructuredFlags(
   resource: Resource,
   filters: DashboardFilterState,
@@ -388,6 +424,10 @@ function filterResources({
       return false;
     }
 
+    if (!matchesSelectedBorough(resource, filters.borough)) {
+      return false;
+    }
+
     if (filters.resourceTypeId && resource.resourceTypeId !== filters.resourceTypeId) {
       return false;
     }
@@ -420,6 +460,7 @@ function getPaginationFilterKey(filters: DashboardFilterState) {
   return JSON.stringify({
     location: filters.location,
     searchText: filters.searchText,
+    borough: filters.borough,
     resourceTypeId: filters.resourceTypeId,
     tagId: filters.tagId,
     timeframe: filters.timeframe,
@@ -436,10 +477,14 @@ function getPaginationFilterKey(filters: DashboardFilterState) {
 export function DashboardClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { bookmarkIds } = useBookmarks();
   const [filters, setFilters] = useState<DashboardFilterState>(() =>
     readFiltersFromSearchParams(searchParams),
   );
   const [activeView, setActiveView] = useState<DashboardView>(() => readDashboardView(searchParams));
+  const [insightsScope, setInsightsScope] = useState<InsightsScope>(() =>
+    readInsightsScope(searchParams),
+  );
   const [mobilePane, setMobilePane] = useState<'map' | 'list'>('map');
   const [mapViewport, setMapViewport] = useState<MapViewportState>({
     bounds: null,
@@ -492,6 +537,7 @@ export function DashboardClient() {
     lng: debouncedCenter.longitude,
     location: deferredLocation || undefined,
     text: deferredSearchText || undefined,
+    borough: filters.borough || undefined,
     resourceTypeId: filters.resourceTypeId || undefined,
     tagId: filters.tagId || undefined,
     sort: 'distance',
@@ -502,8 +548,9 @@ export function DashboardClient() {
     filters.syncListToMap ? debouncedBounds : null,
     LIST_PAGE_SIZE,
     currentBoundsCursor,
+    filters.borough,
   );
-  const markersQuery = useMarkers(debouncedBounds);
+  const markersQuery = useMarkers(debouncedBounds, filters.borough);
 
   const resourcePages = useMemo(() => resourcesQuery.data?.pages ?? [], [resourcesQuery.data]);
   const currentResourcePage =
@@ -563,6 +610,13 @@ export function DashboardClient() {
         timeframedReviewPayloadById,
       ),
     [filters, loadedResources, normalizedLocation, normalizedSearchText, timeframedReviewPayloadById],
+  );
+  const insightsResources = useMemo(
+    () =>
+      insightsScope === 'bookmarked'
+        ? allFilteredResources.filter((resource) => bookmarkIds.has(resource.id))
+        : allFilteredResources,
+    [allFilteredResources, bookmarkIds, insightsScope],
   );
 
   const selectedResourceQuery = useResource(selectedResourceId);
@@ -635,15 +689,21 @@ export function DashboardClient() {
   const canGoNext = filters.syncListToMap
     ? Boolean(boundedResourcesQuery.data?.cursor)
     : currentPageNumber < resourcePages.length || resourcesQuery.hasNextPage;
+  const activeBoroughLabel = filters.borough ? getBoroughLabel(filters.borough) : 'All boroughs';
   const insightsScopeLabel = filters.syncListToMap
     ? 'Scope follows the current map viewport and the current list page when sync-to-map is enabled.'
     : 'Scope follows the currently fetched search results across the pages loaded so far.';
 
-  function replaceUrl(resourceId?: string | null, view = activeView) {
+  function replaceUrl(
+    resourceId?: string | null,
+    view = activeView,
+    nextInsightsScope: InsightsScope = insightsScope,
+  ) {
     startTransition(() => {
       const params = createDashboardSearchParams({
         filters,
         view,
+        insightsScope: nextInsightsScope,
         resourceId,
       });
       const suffix = params.toString();
@@ -661,6 +721,11 @@ export function DashboardClient() {
   function updateView(nextView: DashboardView) {
     setActiveView(nextView);
     replaceUrl(selectedResourceId, nextView);
+  }
+
+  function updateInsightsScope(nextScope: InsightsScope) {
+    setInsightsScope(nextScope);
+    replaceUrl(selectedResourceId, activeView, nextScope);
   }
 
   function openResource(resourceId: string) {
@@ -906,17 +971,20 @@ export function DashboardClient() {
                 onChange={updateFilters}
                 resourceTypes={resourceTypes}
                 tags={tags}
-                resultCount={allFilteredResources.length}
+                resultCount={insightsResources.length}
                 selectedName={selectedResource?.name}
                 pageLabel={null}
               />
             </section>
 
             <InsightsView
-              resources={allFilteredResources}
+              resources={insightsResources}
               reviewPayloadById={timeframedReviewPayloadById}
               timeframe={filters.timeframe}
               scopeLabel={insightsScopeLabel}
+              activeBoroughLabel={activeBoroughLabel}
+              insightsScope={insightsScope}
+              onInsightsScopeChange={updateInsightsScope}
               isLoading={reviewSummariesQuery.isLoading || reviewSummariesQuery.isFetching}
               onOpenResource={openResource}
             />

@@ -1,6 +1,0 @@
-{
-  "/api/resources/[resourceId]/route": "app/api/resources/[resourceId]/route.js",
-  "/api/reviews/[resourceId]/route": "app/api/reviews/[resourceId]/route.js",
-  "/api/resources/within-bounds/route": "app/api/resources/within-bounds/route.js",
-  "/page": "app/page.js"
-}

@@ -1,4 +1,5 @@
 import type {
+  Borough,
   Bounds,
   BoundsResourceCollection,
   Resource,
@@ -35,6 +36,7 @@ export const resourceService = {
     appendIfPresent(params, 'lng', input.lng);
     appendIfPresent(params, 'location', input.location);
     appendIfPresent(params, 'text', input.text);
+    appendIfPresent(params, 'borough', input.borough);
     appendIfPresent(params, 'resourceTypeId', input.resourceTypeId);
     appendIfPresent(params, 'tagId', input.tagId);
     appendIfPresent(params, 'occurrencesWithin', input.occurrencesWithin);
@@ -50,13 +52,14 @@ export const resourceService = {
     return readJson<Resource>(`/api/resources/${resourceId}`, signal);
   },
 
-  async getMarkers(bounds: Bounds, signal?: AbortSignal) {
+  async getMarkers(bounds: Bounds, borough?: Borough | '', signal?: AbortSignal) {
     const params = new URLSearchParams({
       west: String(bounds.west),
       south: String(bounds.south),
       east: String(bounds.east),
       north: String(bounds.north),
     });
+    appendIfPresent(params, 'borough', borough || undefined);
 
     return readJson<{ markers: ResourceMarker[] }>(`/api/markers?${params.toString()}`, signal);
   },
@@ -65,6 +68,7 @@ export const resourceService = {
     bounds: Bounds,
     take = 8,
     cursor?: string | null,
+    borough?: Borough | '',
     signal?: AbortSignal,
   ) {
     const params = new URLSearchParams({
@@ -75,6 +79,7 @@ export const resourceService = {
       take: String(take),
     });
     appendIfPresent(params, 'cursor', cursor ?? undefined);
+    appendIfPresent(params, 'borough', borough || undefined);
 
     return readJson<BoundsResourceCollection>(`/api/resources/within-bounds?${params.toString()}`, signal);
   },
