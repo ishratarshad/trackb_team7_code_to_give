@@ -95,12 +95,18 @@ def extract_issues(review_dict: dict[str, Any]) -> list[str]:
     text_or_reason = _get_str(review_dict, "text", "didNotAttendReason")
 
     if text_or_reason:
-        # inconsistent_hours: "closed", "not open", "hours wrong", "wrong hours"
-        if any(k in text_or_reason for k in ("closed", "not open", "hours wrong", "wrong hours")):
+        # long_wait_times: "long wait" (structured reason or free text)
+        if "long wait" in text_or_reason:
+            issues.add("long_wait_times")
+        # inconsistent_hours: "closed", "not open", "hours wrong", "wrong hours", "hours changed"
+        if any(k in text_or_reason for k in ("closed", "not open", "hours wrong", "wrong hours", "hours changed")):
             issues.add("inconsistent_hours")
         # service_disruption: "closed", "not open", "shut down", "wasn't open"
         if any(k in text_or_reason for k in ("closed", "not open", "shut down", "wasn't open")):
             issues.add("service_disruption")
+        # inventory_shortage: also from didNotAttendReason ("no food left", "ran out", etc.)
+        if any(k in text_or_reason for k in ("no food", "ran out", "limited", "sold out", "none left")):
+            issues.add("inventory_shortage")
         # transportation_access_barrier: "too far", "transport", "bus", "distance", "travel"
         if any(k in text_or_reason for k in ("too far", "transport", "bus", "distance", "travel")):
             issues.add("transportation_access_barrier")

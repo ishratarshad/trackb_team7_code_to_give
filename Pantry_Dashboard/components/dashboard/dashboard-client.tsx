@@ -10,6 +10,7 @@ import {
 } from 'next/navigation';
 
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+import { FeedbackView } from '@/components/dashboard/feedback-view';
 import { InsightsView } from '@/components/dashboard/insights-view';
 import { ResourceFilters } from '@/components/dashboard/resource-filters';
 import { ResourceDetailDrawer } from '@/components/resources/resource-detail-drawer';
@@ -64,7 +65,7 @@ const HIGH_WAIT_THRESHOLD_MINUTES = 45;
 const HIGH_FAILURE_THRESHOLD = 30;
 const INACCURATE_THRESHOLD = 20;
 
-type DashboardView = 'explore' | 'insights';
+type DashboardView = 'explore' | 'insights' | 'feedback';
 type InsightsScope = 'all' | 'bookmarked';
 
 type MapViewportState = {
@@ -178,7 +179,10 @@ function readFiltersFromSearchParams(searchParams: ReadonlyURLSearchParams): Das
 }
 
 function readDashboardView(searchParams: ReadonlyURLSearchParams): DashboardView {
-  return searchParams.get('view') === 'insights' ? 'insights' : 'explore';
+  const view = searchParams.get('view');
+  if (view === 'insights') return 'insights';
+  if (view === 'feedback') return 'feedback';
+  return 'explore';
 }
 
 function readInsightsScope(searchParams: ReadonlyURLSearchParams): InsightsScope {
@@ -219,6 +223,7 @@ function createDashboardSearchParams({
   if (filters.sort !== DEFAULT_FILTERS.sort) params.set('sort', filters.sort);
   if (filters.nearbyRadiusMiles !== DEFAULT_FILTERS.nearbyRadiusMiles) params.set('nearbyRadiusMiles', String(filters.nearbyRadiusMiles));
   if (view === 'insights') params.set('view', 'insights');
+  if (view === 'feedback') params.set('view', 'feedback');
   if (insightsScope === 'bookmarked') params.set('insightsScope', 'bookmarked');
   if (resourceId) params.set('resourceId', resourceId);
   return params;
@@ -567,6 +572,11 @@ export function DashboardClient() {
     [allFilteredResources, bookmarkIds, insightsScope],
   );
 
+  const feedbackResources = useMemo(
+    () => (allFilteredResources.length > 0 ? allFilteredResources : resourcePages.flatMap((p) => p.resources)),
+    [allFilteredResources, resourcePages],
+  );
+
   const selectedResourceQuery = useResource(selectedResourceId);
   const selectedResource = loadedResources.find((resource) => resource.id === selectedResourceId) ?? selectedResourceQuery.data ?? null;
 
@@ -663,12 +673,15 @@ export function DashboardClient() {
             <div className="rounded-full border border-line/80 bg-white/80 p-1">
               <button type="button" onClick={() => updateView('explore')} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeView === 'explore' ? 'bg-pine text-white' : 'text-slate'}`}>Explore</button>
               <button type="button" onClick={() => updateView('insights')} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeView === 'insights' ? 'bg-pine text-white' : 'text-slate'}`}>Insights</button>
+              <button type="button" onClick={() => updateView('feedback')} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeView === 'feedback' ? 'bg-pine text-white' : 'text-slate'}`}>Feedback</button>
             </div>
             <div className="rounded-full border border-line/80 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate">{markersQuery.data?.markers.length ?? 0} map pins</div>
           </div>
         }
       >
-        {activeView === 'explore' ? (
+        {activeView === 'feedback' ? (
+          <FeedbackView resources={feedbackResources} />
+        ) : activeView === 'explore' ? (
           <>
             <div className="mb-3 flex gap-2 lg:hidden">
               <button type="button" onClick={() => setMobilePane('map')} className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition ${mobilePane === 'map' ? 'bg-pine text-white' : 'border border-line/80 bg-white/80 text-slate'}`}>Map</button>
@@ -795,14 +808,14 @@ export function DashboardClient() {
               </section>
             </div>
           </>
-        ) : (
+        ) : activeView === 'insights' ? (
           <div className="grid gap-4">
             <section className="panel-surface border-b border-line/70 bg-card/95 px-4 py-4 backdrop-blur">
               <ResourceFilters filters={filters} onChange={updateFilters} resourceTypes={resourceTypes} tags={tags} resultCount={insightsResources.length} selectedName={selectedResource?.name} pageLabel={null} />
             </section>
             <InsightsView resources={insightsResources} reviewPayloadById={timeframedReviewPayloadById} timeframe={filters.timeframe} scopeLabel={insightsScopeLabel} activeBoroughLabel={activeBoroughLabel} insightsScope={insightsScope} onInsightsScopeChange={updateInsightsScope} isLoading={reviewSummariesQuery.isLoading} onOpenResource={openResource} />
           </div>
-        )}
+        ) : null}
       </DashboardShell>
       <ResourceDetailDrawer resourceId={selectedResourceId} open={Boolean(selectedResourceId)} timeframe={filters.timeframe} onClose={closeResource} />
     </>
