@@ -9,6 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import create_pool, db_health_check
 from app.cleaning import clean_feedback_payload
+from app.lemontree_proxy import (
+    fetch_markers_within_bounds,
+    fetch_resource,
+    fetch_resources,
+)
 from app.models import (
     AnalyticsSummary,
     AnalyticsInsights,
@@ -101,6 +106,12 @@ async def health(request: Request) -> dict:
         return {"status": "ok", "db": "ok"}
     except Exception as exc:
         return {"status": "degraded", "db": "error", "detail": str(exc)}
+
+
+@app.head("/health")
+async def health_head(request: Request) -> None:
+    await health(request)
+    return None
 
 
 @app.post("/pantries", response_model=PantryOut)
@@ -764,3 +775,20 @@ async def get_report(request: Request, report_id: str) -> ReportOut:
     if not row:
         raise HTTPException(status_code=404, detail="Report not found")
     return ReportOut(**dict(row))
+
+
+@app.get("/proxy/lemontree/resources")
+async def proxy_lemontree_resources(request: Request) -> dict:
+    params = dict(request.query_params)
+    return await fetch_resources(params)
+
+
+@app.get("/proxy/lemontree/resources/{resource_id}")
+async def proxy_lemontree_resource(resource_id: str) -> dict:
+    return await fetch_resource(resource_id)
+
+
+@app.get("/proxy/lemontree/markersWithinBounds")
+async def proxy_lemontree_markers(request: Request) -> dict:
+    params = list(request.query_params.multi_items())
+    return await fetch_markers_within_bounds(params)

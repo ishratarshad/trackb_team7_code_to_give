@@ -53,6 +53,9 @@ python3 -m uvicorn app.main:app --reload
 - `GET /pantries/{pantry_id}`
 - `GET /resources`
 - `GET /resources/{resource_id}`
+- `GET /proxy/lemontree/resources`
+- `GET /proxy/lemontree/resources/{resource_id}`
+- `GET /proxy/lemontree/markersWithinBounds`
 - `POST /feedback`
 - `GET /feedback`
 - `GET /analytics/summary`
@@ -95,6 +98,21 @@ Run on an interval (minutes):
 
 ```bash
 python -m ingest.run_ingestion --interval-min 1440
+```
+
+Classifier + supply profile import:
+
+```bash
+python -m ingest.pipeline_import --classifier-path ../data/sample_classifier_output.json --supply-path ../data/supply_profiles.json
+```
+
+Cron-friendly entrypoint (uses env vars):
+
+```bash
+INGEST_LEMONTREE=1 INGEST_NYC=1 \
+CLASSIFIER_OUTPUT_PATH=../data/sample_classifier_output.json \
+SUPPLY_PROFILES_PATH=../data/supply_profiles.json \
+python -m ingest.cron
 ```
 
 ## Tests
