@@ -792,3 +792,64 @@ async def proxy_lemontree_resource(resource_id: str) -> dict:
 async def proxy_lemontree_markers(request: Request) -> dict:
     params = list(request.query_params.multi_items())
     return await fetch_markers_within_bounds(params)
+
+
+async def _get_latest_dataset_id(conn) -> str | None:
+    row = await conn.fetchrow(
+        "select id from public_datasets order by ingested_at desc limit 1"
+    )
+    return row["id"] if row else None
+
+
+@app.get("/fusion/lemontree/resources-with-demographics")
+async def fusion_lemontree_resources_with_demographics(
+    request: Request,
+    dataset_id: str | None = None,
+) -> dict:
+    params = dict(request.query_params)
+    params.pop("dataset_id", None)
+    resources_payload = await fetch_resources(params)
+    resources = resources_payload.get("resources") or []
+
+    zip_codes = {
+        (r.get("zipCode") or r.get("zip_code") or r.get("zip") or "").strip()
+        for r in resources
+        if (r.get("zipCode") or r.get("zip_code") or r.get("zip"))
+    }
+    zip_list = [z for z in zip_codes if z]
+
+    metrics_by_zip: dict[str, dict[str, Any]] = {}
+    if zip_list:
+        async with request.app.state.pool.acquire() as conn:
+            resolved_dataset_id = dataset_id or await _get_latest_dataset_id(conn)
+            if resolved_dataset_id:
+                rows = await conn.fetch(
+                    """
+                    select geo_unit_id, metrics
+                    from public_dataset_metrics
+                    where dataset_id = $1
+                      and geo_unit_id = any($2)
+                    """,
+                    resolved_dataset_id,
+                    zip_list,
+                )
+                metrics_by_zip = {row["geo_unit_id"]: row["metrics"] for row in rows}
+                resources_payload["dataset_id"] = resolved_dataset_id
+
+    fused = []
+    for resource in resources:
+        zip_code = (
+            resource.get("zipCode")
+            or resource.get("zip_code")
+            or resource.get("zip")
+            or ""
+        ).strip()
+        fused.append(
+            {
+                **resource,
+                "demographics": metrics_by_zip.get(zip_code),
+            }
+        )
+
+    resources_payload["resources"] = fused
+    return resources_payload

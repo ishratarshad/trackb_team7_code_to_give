@@ -56,6 +56,7 @@ python3 -m uvicorn app.main:app --reload
 - `GET /proxy/lemontree/resources`
 - `GET /proxy/lemontree/resources/{resource_id}`
 - `GET /proxy/lemontree/markersWithinBounds`
+- `GET /fusion/lemontree/resources-with-demographics`
 - `POST /feedback`
 - `GET /feedback`
 - `GET /analytics/summary`
