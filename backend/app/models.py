@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 ResourceKind = Literal["pantry", "soup_kitchen", "other"]
 
@@ -38,15 +38,86 @@ class PantryOut(PantryCreate):
 
 
 class FeedbackCreate(BaseModel):
-    pantry_id: str = Field(..., min_length=1)
+    pantry_id: str = Field(
+        ...,
+        min_length=1,
+        validation_alias=AliasChoices("resourceId", "pantry_id"),
+        serialization_alias="resourceId",
+    )
+    author_id: str | None = Field(
+        None,
+        validation_alias=AliasChoices("authorId", "author_id"),
+        serialization_alias="authorId",
+    )
+    attended: bool | None = None
+    did_not_attend_reason: str | None = Field(
+        None,
+        validation_alias=AliasChoices("didNotAttendReason", "did_not_attend_reason"),
+        serialization_alias="didNotAttendReason",
+    )
     rating: int = Field(..., ge=1, le=5)
-    wait_time_min: int | None = Field(None, ge=0)
+    wait_time_min: int | None = Field(
+        None,
+        ge=0,
+        validation_alias=AliasChoices("waitTimeMinutes", "wait_time_min"),
+        serialization_alias="waitTimeMinutes",
+    )
     resource_type: ResourceType
     items_unavailable: str | None = None
-    comment: str | None = None
+    comment: str | None = Field(
+        None,
+        validation_alias=AliasChoices("text", "comment"),
+        serialization_alias="text",
+    )
+    information_accurate: bool | None = Field(
+        None,
+        validation_alias=AliasChoices("informationAccurate", "information_accurate"),
+        serialization_alias="informationAccurate",
+    )
+    photo_url: str | None = Field(
+        None,
+        validation_alias=AliasChoices("photoUrl", "photo_url"),
+        serialization_alias="photoUrl",
+    )
+    photo_public: bool | None = Field(
+        None,
+        validation_alias=AliasChoices("photoPublic", "photo_public"),
+        serialization_alias="photoPublic",
+    )
+    share_text_with_resource: bool | None = Field(
+        None,
+        validation_alias=AliasChoices("shareTextWithResource", "share_text_with_resource"),
+        serialization_alias="shareTextWithResource",
+    )
+    occurrence_id: str | None = Field(
+        None,
+        validation_alias=AliasChoices("occurrenceId", "occurrence_id"),
+        serialization_alias="occurrenceId",
+    )
+    user_id: str | None = Field(
+        None,
+        validation_alias=AliasChoices("userId", "user_id"),
+        serialization_alias="userId",
+    )
+    reviewed_by_user_id: str | None = Field(
+        None,
+        validation_alias=AliasChoices("reviewedByUserId", "reviewed_by_user_id"),
+        serialization_alias="reviewedByUserId",
+    )
+    deleted_at: datetime | None = Field(
+        None,
+        validation_alias=AliasChoices("deletedAt", "deleted_at"),
+        serialization_alias="deletedAt",
+    )
     issue_categories: list[str] | None = None
     raw_payload: dict | None = None
-    created_at: datetime | None = None
+    created_at: datetime | None = Field(
+        None,
+        validation_alias=AliasChoices("createdAt", "created_at"),
+        serialization_alias="createdAt",
+    )
+
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
 
 class FeedbackOut(FeedbackCreate):

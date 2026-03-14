@@ -257,30 +257,52 @@ async def create_feedback(request: Request, payload: FeedbackCreate) -> Feedback
     query = """
         insert into feedback (
             pantry_id,
+            author_id,
+            attended,
+            did_not_attend_reason,
             rating,
             wait_time_min,
             resource_type,
             items_unavailable,
             comment,
+            information_accurate,
+            photo_url,
+            photo_public,
+            share_text_with_resource,
+            occurrence_id,
+            user_id,
+            reviewed_by_user_id,
+            deleted_at,
             issue_categories,
             raw_payload,
             created_at
         )
-        values ($1,$2,$3,$4,$5,$6,$7,$8, coalesce($9, now()))
+        values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19, coalesce($20, now()))
         returning *
     """
-        row = await conn.fetchrow(
-            query,
-            cleaned["pantry_id"],
-            cleaned["rating"],
-            cleaned["wait_time_min"],
-            cleaned["resource_type"],
-            cleaned["items_unavailable"],
-            cleaned["comment"],
-            cleaned["issue_categories"],
-            cleaned["raw_payload"],
-            cleaned["created_at"],
-        )
+    row = await conn.fetchrow(
+        query,
+        cleaned["pantry_id"],
+        cleaned.get("author_id"),
+        cleaned.get("attended"),
+        cleaned.get("did_not_attend_reason"),
+        cleaned["rating"],
+        cleaned["wait_time_min"],
+        cleaned["resource_type"],
+        cleaned["items_unavailable"],
+        cleaned["comment"],
+        cleaned.get("information_accurate"),
+        cleaned.get("photo_url"),
+        cleaned.get("photo_public"),
+        cleaned.get("share_text_with_resource"),
+        cleaned.get("occurrence_id"),
+        cleaned.get("user_id"),
+        cleaned.get("reviewed_by_user_id"),
+        cleaned.get("deleted_at"),
+        cleaned["issue_categories"],
+        cleaned["raw_payload"],
+        cleaned["created_at"],
+    )
     return FeedbackOut(
         **dict(row),
         pantry_name=pantry["name"],

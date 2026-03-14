@@ -59,6 +59,7 @@ def clean_feedback_payload(payload: FeedbackCreate) -> dict:
     data = payload.model_dump()
     data["items_unavailable"] = clean_text(data.get("items_unavailable"))
     data["comment"] = clean_text(data.get("comment"))
+    data["did_not_attend_reason"] = clean_text(data.get("did_not_attend_reason"))
     data["issue_categories"] = clean_issue_categories(data.get("issue_categories"))
     created_at = data.get("created_at")
     if created_at is None:

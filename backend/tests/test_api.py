@@ -22,18 +22,23 @@ def test_pantries_crud_and_feedback_flow(client):
     pantry = pantry_resp.json()
 
     feedback_payload = {
-        "pantry_id": pantry["id"],
+        "resourceId": pantry["id"],
+        "authorId": "client_abc123xyz",
+        "attended": True,
         "rating": 4,
-        "wait_time_min": 20,
+        "waitTimeMinutes": 20,
         "resource_type": "produce",
-        "comment": "Long wait in line",
+        "text": "Long wait in line",
+        "informationAccurate": True,
+        "photoPublic": False,
+        "shareTextWithResource": True,
         "issue_categories": ["long_wait_times"],
-        "created_at": datetime(2026, 3, 13, 15, 20, tzinfo=timezone.utc).isoformat(),
+        "createdAt": datetime(2026, 3, 13, 15, 20, tzinfo=timezone.utc).isoformat(),
     }
     created = client.post("/feedback", json=feedback_payload)
     assert created.status_code == 200
     created_body = created.json()
-    assert created_body["pantry_id"] == pantry["id"]
+    assert created_body["resourceId"] == pantry["id"]
     assert created_body["pantry_name"] == pantry_payload["name"]
 
     listed = client.get("/feedback")

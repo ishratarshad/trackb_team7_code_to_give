@@ -69,11 +69,22 @@ Backend alignment strategy:
 - `id` (uuid)
 - `created_at` (timestamp)
 - `pantry_id` (uuid)
+- `author_id` (text, nullable)
+- `attended` (bool, nullable)
+- `did_not_attend_reason` (text, nullable)
 - `rating` (int 1-5)
 - `wait_time_min` (int, nullable)
 - `resource_type` (enum: produce, protein, dairy, grains, canned, packaged, beverages, condiments, snacks, other)
 - `items_unavailable` (text, nullable)
 - `comment` (text, nullable)
+- `information_accurate` (bool, nullable)
+- `photo_url` (text, nullable)
+- `photo_public` (bool, nullable)
+- `share_text_with_resource` (bool, nullable)
+- `occurrence_id` (text, nullable)
+- `user_id` (text, nullable)
+- `reviewed_by_user_id` (text, nullable)
+- `deleted_at` (timestamp, nullable)
 - `issue_categories` (jsonb, nullable)
 - `raw_payload` (jsonb, nullable)
 
@@ -118,7 +129,7 @@ Backend alignment strategy:
 
 ### Resources (Map)
 - `GET /resources`
-  - Query params: `neighborhood`, `zip`, `resource_type`, `open_now`
+  - Query params: `neighborhood`, `zip`, `resource_kind`, `open_now`
   - Returns list of resources with coordinates + schedule summary
 - `GET /resources/{id}`
   - Resource details + schedule
