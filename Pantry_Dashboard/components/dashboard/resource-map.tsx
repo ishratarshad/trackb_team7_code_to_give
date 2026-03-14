@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 import type { FeatureCollection, Point, Polygon } from 'geojson';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, TrendingDown, CreditCard, ChevronDown } from 'lucide-react';
+import { TrendingDown, CreditCard, ChevronDown } from 'lucide-react';
 import Map, {
   Layer,
   NavigationControl,
@@ -18,7 +18,7 @@ import { MarkerPopupCard } from '@/components/resources/marker-popup-card';
 import { useResource, useReviewSummary } from '@/hooks/use-resources';
 import { distanceInMiles } from '@/lib/geo';
 import { hasMapboxToken, mapboxAccessToken } from '@/lib/mapbox';
-import { isInFoodDesert, isHighPovertyArea, isHighSnapArea } from '@/lib/demographics';
+import { isHighPovertyArea, isHighSnapArea } from '@/lib/demographics';
 import type { Bounds, Coordinates, Resource, ResourceMarker } from '@/types/resources';
 
 type PopupMarker = {
@@ -189,19 +189,6 @@ const radiusLineLayer: any = {
   },
 };
 
-const foodDesertLayer: any = {
-  id: 'food-desert-fill',
-  type: 'circle',
-  paint: {
-    'circle-color': '#dc2626', // Red
-    'circle-radius': 22,
-    'circle-opacity': 0.25,
-    'circle-stroke-width': 2,
-    'circle-stroke-color': '#b91c1c',
-    'circle-stroke-opacity': 0.7,
-  },
-};
-
 const highPovertyLayer: any = {
   id: 'high-poverty-fill',
   type: 'circle',
@@ -219,12 +206,12 @@ const highSnapLayer: any = {
   id: 'high-snap-fill',
   type: 'circle',
   paint: {
-    'circle-color': '#8b5cf6', // Purple
+    'circle-color': '#8b5cf6', // Violet
     'circle-radius': 22,
-    'circle-opacity': 0.25,
+    'circle-opacity': 0.3,
     'circle-stroke-width': 2,
     'circle-stroke-color': '#7c3aed',
-    'circle-stroke-opacity': 0.7,
+    'circle-stroke-opacity': 0.8,
   },
 };
 
@@ -349,8 +336,6 @@ export function ResourceMap({
           return isHighPovertyArea(null, coords);
         case 'snap':
           return isHighSnapArea(null, coords);
-        case 'food-desert':
-          return isInFoodDesert(null, coords);
         default:
           return false;
       }
@@ -454,8 +439,7 @@ export function ResourceMap({
   const overlayOptions = [
     { id: 'none' as const, label: 'No Overlay', icon: null, color: '' },
     { id: 'poverty' as const, label: 'High Poverty (>20%)', icon: TrendingDown, color: 'text-orange-500' },
-    { id: 'snap' as const, label: 'High SNAP (>20%)', icon: CreditCard, color: 'text-purple-500' },
-    { id: 'food-desert' as const, label: 'Food Deserts', icon: AlertTriangle, color: 'text-red-500' },
+    { id: 'snap' as const, label: 'High SNAP (>20%)', icon: CreditCard, color: 'text-violet-500' },
   ];
 
   const activeOption = overlayOptions.find(o => o.id === activeOverlay) ?? overlayOptions[0];
@@ -516,15 +500,12 @@ export function ResourceMap({
           <div className="flex items-center gap-2 text-xs font-semibold">
             <span
               className={`w-4 h-4 rounded-full opacity-60 ${
-                activeOverlay === 'poverty' ? 'bg-orange-500' :
-                activeOverlay === 'snap' ? 'bg-purple-500' :
-                'bg-red-500'
+                activeOverlay === 'poverty' ? 'bg-orange-500' : 'bg-violet-500'
               }`}
             />
             <span className="text-slate">
               {activeOverlay === 'poverty' && 'High poverty areas (>20%)'}
               {activeOverlay === 'snap' && 'High SNAP enrollment (>20%)'}
-              {activeOverlay === 'food-desert' && 'Food desert areas'}
             </span>
             <span className="text-ink font-bold">({overlayCollection.features.length})</span>
           </div>
@@ -631,16 +612,35 @@ export function ResourceMap({
           </Source>
         ) : null}
 
-        {/* Demographics Overlays */}
-        {activeOverlay !== 'none' && overlayCollection.features.length > 0 ? (
-          <Source id="overlay-points" type="geojson" data={overlayCollection}>
-            <Layer {...(
-              activeOverlay === 'poverty' ? highPovertyLayer :
-              activeOverlay === 'snap' ? highSnapLayer :
-              foodDesertLayer
-            )} />
+        {/* Demographics Overlays - key forces complete re-mount when overlay changes */}
+        {activeOverlay !== 'none' && overlayCollection.features.length > 0 && (
+          <Source
+            key={`overlay-${activeOverlay}`}
+            id={`overlay-${activeOverlay}`}
+            type="geojson"
+            data={overlayCollection}
+          >
+            <Layer
+              id={`layer-${activeOverlay}`}
+              type="circle"
+              paint={activeOverlay === 'poverty' ? {
+                'circle-color': '#f97316',
+                'circle-radius': 22,
+                'circle-opacity': 0.25,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ea580c',
+                'circle-stroke-opacity': 0.7,
+              } : {
+                'circle-color': '#8b5cf6',
+                'circle-radius': 22,
+                'circle-opacity': 0.3,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#7c3aed',
+                'circle-stroke-opacity': 0.8,
+              }}
+            />
           </Source>
-        ) : null}
+        )}
 
         {popupMarker ? (
           <Popup
