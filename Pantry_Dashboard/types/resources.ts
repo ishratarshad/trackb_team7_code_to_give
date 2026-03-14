@@ -66,6 +66,14 @@ export type Resource = {
   weeklySchedule: string[];
   status: ResourceStatus;
   occurrences: ResourceOccurrence[];
+  // Team 7 AI Classifier Flags
+  hasGrains?: boolean;
+  hasCanned?: boolean;
+  hasFreshProduce?: boolean;
+  hasDairy?: boolean;
+  hasMeat?: boolean;
+  hasHalal?: boolean;
+  hasKosher?: boolean;
 };
 
 export type ResourceCollection = {
@@ -220,6 +228,10 @@ export type BookmarkedResource = Pick<
   | 'travelDistanceMiles'
   | 'scheduleSummary'
   | 'status'
+  | 'hasFreshProduce'
+  | 'hasHalal'
+  | 'hasKosher'
+  | 'hasMeat'
 >;
 
 export type DashboardFilterState = {
@@ -237,4 +249,9 @@ export type DashboardFilterState = {
   inaccurateListings: boolean;
   sort: ResourceListSort;
   nearbyRadiusMiles: number;
+  // Team 7 Filter States
+  hasFreshProduce: boolean;
+  hasHalal: boolean;
+  hasKosher: boolean;
+  hasMeat: boolean;
 };

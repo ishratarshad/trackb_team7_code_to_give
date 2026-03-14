@@ -61,8 +61,12 @@ export function ResourceFilters({
         Boolean(filters.tagId),
         filters.openSoonOnly,
         !filters.syncListToMap,
+        filters.hasHalal,
+        filters.hasKosher,
+        filters.hasFreshProduce,
+        filters.hasMeat,
       ].filter(Boolean).length,
-    [filters.borough, filters.openSoonOnly, filters.resourceTypeId, filters.syncListToMap, filters.tagId],
+    [filters],
   );
 
   const [showAdvanced, setShowAdvanced] = useState(activeAdvancedCount > 0);
@@ -113,7 +117,7 @@ export function ResourceFilters({
           value={filters.timeframe}
           options={timeframeOptions}
           includeAllOption={false}
-          onChange={(value) => onChange({ timeframe: value as DashboardFilterState['timeframe'] })}
+          onChange={(value: string) => onChange({ timeframe: value as DashboardFilterState['timeframe'] })}
         />
 
         <FilterSelect
@@ -121,15 +125,15 @@ export function ResourceFilters({
           value={filters.sort}
           options={sortOptions}
           includeAllOption={false}
-          onChange={(value) => onChange({ sort: value as DashboardFilterState['sort'] })}
+          onChange={(value: string) => onChange({ sort: value as DashboardFilterState['sort'] })}
         />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <ToggleRow
             label="Open now"
-            description="Only show locations confirmed open from occurrence data"
+            description="Only show locations confirmed open"
             checked={filters.openNowOnly}
             compact
             onToggle={() =>
@@ -140,20 +144,27 @@ export function ResourceFilters({
             }
           />
 
+          <div className="h-6 w-px bg-line/60 mx-1 hidden sm:block" />
+
           <QuickFilterChip
-            label="High wait times"
-            active={filters.highestWait}
-            onClick={() => onChange({ highestWait: !filters.highestWait })}
+            label="Fresh Produce"
+            active={filters.hasFreshProduce}
+            onClick={() => onChange({ hasFreshProduce: !filters.hasFreshProduce })}
           />
           <QuickFilterChip
-            label="High failure rates"
-            active={filters.highFailureRate}
-            onClick={() => onChange({ highFailureRate: !filters.highFailureRate })}
+            label="Halal"
+            active={filters.hasHalal}
+            onClick={() => onChange({ hasHalal: !filters.hasHalal })}
           />
           <QuickFilterChip
-            label="Inaccurate listings"
-            active={filters.inaccurateListings}
-            onClick={() => onChange({ inaccurateListings: !filters.inaccurateListings })}
+            label="Kosher"
+            active={filters.hasKosher}
+            onClick={() => onChange({ hasKosher: !filters.hasKosher })}
+          />
+          <QuickFilterChip
+            label="Protein"
+            active={filters.hasMeat}
+            onClick={() => onChange({ hasMeat: !filters.hasMeat })}
           />
         </div>
 
@@ -176,30 +187,30 @@ export function ResourceFilters({
       </div>
 
       {showAdvanced ? (
-        <div className="rounded-[24px] border border-line/80 bg-white/75 p-4">
+        <div className="rounded-[24px] border border-line/80 bg-white/75 p-4 shadow-sm">
           <div className="grid gap-2.5 lg:grid-cols-2 xl:grid-cols-4">
             <FilterSelect
               label="Borough"
               value={filters.borough}
               options={BOROUGH_FILTER_OPTIONS}
               includeAllOption={false}
-              onChange={(value) => onChange({ borough: value as DashboardFilterState['borough'] })}
+              onChange={(value: string) => onChange({ borough: value as DashboardFilterState['borough'] })}
             />
             <FilterSelect
               label="Service type"
               value={filters.resourceTypeId}
               options={resourceTypes}
-              onChange={(value) => onChange({ resourceTypeId: value })}
+              onChange={(value: string) => onChange({ resourceTypeId: value })}
             />
             <FilterSelect
               label="Tag"
               value={filters.tagId}
               options={tags}
-              onChange={(value) => onChange({ tagId: value })}
+              onChange={(value: string) => onChange({ tagId: value })}
             />
             <ToggleRow
               label="Open soon"
-              description="Only show locations with a confirmed upcoming occurrence soon"
+              description="Confirmed upcoming occurrence"
               checked={filters.openSoonOnly}
               onToggle={() =>
                 onChange({
@@ -210,12 +221,27 @@ export function ResourceFilters({
             />
           </div>
 
-          <div className="mt-3 grid gap-2.5 lg:grid-cols-2">
+          <div className="mt-3 grid gap-2.5 lg:grid-cols-2 xl:grid-cols-4">
             <ToggleRow
-              label="Sync list to map bounds"
-              description="Keep the list limited to the current viewport"
+              label="Sync to map"
+              description="Limit list to viewport"
               checked={filters.syncListToMap}
               onToggle={() => onChange({ syncListToMap: !filters.syncListToMap })}
+            />
+            <QuickFilterChip
+              label="High wait times"
+              active={filters.highestWait}
+              onClick={() => onChange({ highestWait: !filters.highestWait })}
+            />
+            <QuickFilterChip
+              label="High failure rates"
+              active={filters.highFailureRate}
+              onClick={() => onChange({ highFailureRate: !filters.highFailureRate })}
+            />
+            <QuickFilterChip
+              label="Inaccurate listings"
+              active={filters.inaccurateListings}
+              onClick={() => onChange({ inaccurateListings: !filters.inaccurateListings })}
             />
           </div>
         </div>
@@ -248,6 +274,8 @@ export function ResourceFilters({
     </div>
   );
 }
+
+// --- HELPER COMPONENTS (THE ONES THAT WERE MISSING) ---
 
 function FilterSelect({
   label,
@@ -337,7 +365,7 @@ function QuickFilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-full border px-3.5 py-2 text-sm font-semibold transition',
+        'rounded-full border px-3.5 py-2 text-sm font-semibold transition whitespace-nowrap',
         active
           ? 'border-pine/30 bg-pine text-white'
           : 'border-line/80 bg-white/85 text-slate hover:border-pine/30 hover:text-pine',
