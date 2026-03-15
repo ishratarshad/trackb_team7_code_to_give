@@ -21,7 +21,7 @@ Lemontree collects valuable community feedback about food access across New York
 Current challenges include:
 
 - Pantry feedback and photos are unstructured and require manual review
-- No way to filter pantries by dietary needs (Halal, Kosher, culturally relevant foods)
+- No way to filter pantries by dietary needs (Halal, Kosher, Protein, Dairy, etc)
 - Operational issues such as shortages or long wait times are difficult to detect quickly
 - Data is difficult to aggregate across neighborhoods or food categories
 - Demographic context (poverty rates, SNAP enrollment) isn't connected to pantry data
