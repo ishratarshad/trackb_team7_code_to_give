@@ -23,7 +23,7 @@ By combining supply profiles with operational signals like wait times and unmet 
 
 ## Key Features
 
-- **AI-Based Inventory Tracking**: Automatically detects food items from pantry photos to verify current stock levels.
+- **Visual Inventory Tracking**: Automatically detects food items from pantry photos to verify current stock levels.
 - **Operational Priority Board**: A real-time leaderboard ranking the Top 5 pantries with the highest demand pressure and supply shortages.
 - **Interactive Resource Map**: A Mapbox-powered visualization of 1,400+ NYC food locations with smart clustering and viewport-based insights.
 - **Live Supply Breakdown**: Dynamic charts showing the city-wide distribution of key food groups based on current map filters.
