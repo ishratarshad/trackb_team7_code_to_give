@@ -12,7 +12,7 @@ export function DashboardShell({
   children,
   aside,
 }: {
-  title: string;
+  title: React.ReactNode;
   description: string;
   children: React.ReactNode;
   aside?: React.ReactNode;
@@ -20,67 +20,66 @@ export function DashboardShell({
   const pathname = usePathname();
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0 bg-dashboard-grid bg-[size:56px_56px] opacity-[0.18]" />
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[1920px] flex-col px-3 py-3 sm:px-4 lg:px-5 lg:py-4 2xl:px-6">
-        <header className="panel-surface mb-3 p-4 lg:mb-4 lg:p-4.5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="max-w-4xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-moss">
-                Lemontree Hackathon Prototype
-              </p>
-              <h1 className="mt-2 text-3xl leading-tight text-ink sm:text-[2.35rem] xl:text-[2.7rem]">
+    <div className="relative min-h-screen overflow-hidden bg-[#FAFAF7]">
+      <div className="absolute inset-0 bg-dashboard-grid bg-[size:56px_56px] opacity-[0.06]" />
+
+      <div className="relative flex min-h-screen w-full flex-col">
+
+        {/* TOP NAV BAR — Lemontree yellow strip */}
+        <div className="bg-[#FFD700] px-6 py-4 flex items-center justify-between shadow-sm">
+          <span className="text-[#6D4AFF] text-base font-black uppercase tracking-widest">
+            LemonLens
+          </span>      
+          <div className="flex items-center gap-2">
+            {pathname !== '/' ? (
+              <TopNavLink href="/" icon={<Map className="h-4 w-4" />}>Explore</TopNavLink>
+            ) : null}
+            <TopNavLink href="/bookmarks" icon={<Bookmark className="h-4 w-4" />}>Bookmarks</TopNavLink>
+          </div>
+        </div>
+
+        {/* PURPLE HERO — matches Lemontree's hero section */}
+        <header className="relative overflow-hidden bg-[#6D4AFF] px-8 py-14 lg:px-16 lg:py-20">          {/* Decorative yellow glow */}
+          <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-[#FFD700] opacity-15 blur-3xl pointer-events-none" />
+
+          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between max-w-[1920px] mx-auto w-full">
+            <div className="max-w-3xl">
+              {/* Title injected from DashboardClient */}
+              <div className="text-white antialiased">
                 {title}
-              </h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate lg:text-[0.95rem]">
+              </div>
+              <p className="mt-4 max-w-2xl text-base font-medium leading-relaxed text-white/90 lg:text-xl">
                 {description}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              {pathname !== '/' ? (
-                <NavLink href="/" active={pathname === '/'} icon={<Map className="h-4 w-4" />}>
-                  Explore
-                </NavLink>
-              ) : null}
-              <NavLink
-                href="/bookmarks"
-                active={pathname === '/bookmarks'}
-                icon={<Bookmark className="h-4 w-4" />}
-              >
-                Bookmarks
-              </NavLink>
               {aside}
             </div>
           </div>
         </header>
 
-        <main className="relative flex-1">{children}</main>
+        <main className="relative flex-1 px-4 py-4 sm:px-6 lg:px-8 lg:py-6 2xl:px-10">
+          {children}
+        </main>
       </div>
     </div>
   );
 }
 
-function NavLink({
+function TopNavLink({
   href,
-  active,
   icon,
   children,
 }: {
   href: string;
-  active: boolean;
   icon: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className={cn(
-        'inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition',
-        active
-          ? 'border-pine/30 bg-pine text-white'
-          : 'border-line/80 bg-white/80 text-slate hover:border-pine/30 hover:text-pine',
-      )}
+      className="inline-flex items-center gap-2 rounded-full bg-[#6D4AFF] px-4 py-2 text-sm font-black text-white transition hover:bg-[#5a3de0] shadow-sm"
     >
       {icon}
       {children}

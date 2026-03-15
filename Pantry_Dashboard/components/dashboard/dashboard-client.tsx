@@ -41,7 +41,7 @@ import type {
   TimeframeOption,
 } from '@/types/resources';
 
-// --- TEAM 7: JSON DATA LINK ---
+// ---  JSON DATA LINK ---
 import supplyProfiles from '@/src/data/supply_profiles.json';
 
 const ResourceMap = dynamic(
@@ -677,19 +677,54 @@ export function DashboardClient() {
   const showListLoading = (filters.syncListToMap && boundedResourcesQuery.isLoading) || (!filters.syncListToMap && resourcesQuery.isLoading);
   const showPageTransitionLoading = boundedResourcesQuery.isFetching || resourcesQuery.isFetchingNextPage;
 
-  return (
+return (
     <>
       <DashboardShell
-        title="Food resource operations dashboard"
+        title={
+          <div className="flex flex-col gap-1">
+            <h1 className="text-5xl font-black leading-tight tracking-tight text-white sm:text-6xl xl:text-7xl">
+              LemonLens
+            </h1>
+            <h2 className="text-lg font-semibold text-white/80">
+              Food resource operations dashboard
+            </h2>
+          </div>
+        }
         description="Explore pantry and meal-service locations on the map, scan compact cards, and view dietary availability insights."
         aside={
           <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-full border border-line/80 bg-white/80 p-1">
-              <button type="button" onClick={() => updateView('explore')} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeView === 'explore' ? 'bg-pine text-white' : 'text-slate'}`}>Explore</button>
-              <button type="button" onClick={() => updateView('insights')} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeView === 'insights' ? 'bg-pine text-white' : 'text-slate'}`}>Insights</button>
-              <button type="button" onClick={() => updateView('feedback')} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeView === 'feedback' ? 'bg-pine text-white' : 'text-slate'}`}>Feedback</button>
+            <div className="rounded-full border border-white/20 bg-white/10 p-1 backdrop-blur-md">
+              <button
+                type="button"
+                onClick={() => updateView('explore')}
+                className={`rounded-full px-4 py-2 text-sm font-black transition ${
+                  activeView === 'explore' ? 'bg-[#FFD700] text-[#6D4AFF]' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                Explore
+              </button>
+              <button
+                type="button"
+                onClick={() => updateView('insights')}
+                className={`rounded-full px-4 py-2 text-sm font-black transition ${
+                  activeView === 'insights' ? 'bg-[#FFD700] text-[#6D4AFF]' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                Insights
+              </button>
+              <button
+                type="button"
+                onClick={() => updateView('feedback')}
+                className={`rounded-full px-4 py-2 text-sm font-black transition ${
+                  activeView === 'feedback' ? 'bg-[#FFD700] text-[#6D4AFF]' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                Feedback
+              </button>
             </div>
-            <div className="rounded-full border border-line/80 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate">{markersQuery.data?.markers.length ?? 0} map pins</div>
+            <div className="rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-md">
+              {markersQuery.data?.markers.length ?? 0} map pins
+            </div>
           </div>
         }
       >
@@ -713,24 +748,24 @@ export function DashboardClient() {
                 </div>
 
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3 lg:px-4">
-                  
+
                   {/* --- TOP SHORTAGES BOARD --- */}
                   {topDisruptions.length > 0 && (
-                    <div className="panel-surface mb-4 border-l-4 border-l-amber bg-white/40 p-4 backdrop-blur-sm shadow-sm">
+                    <div className="panel-surface mb-4 border-l-4 border-l-[#6D4AFF] bg-white/40 p-4 backdrop-blur-sm shadow-sm">
                       <div className="mb-3 flex items-center justify-between">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate/60">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-[#6D4AFF]/60">
                           Operational Priority Board (Top 5 Gaps)
                         </h3>
-                        <span className="rounded-full bg-amber px-2 py-0.5 text-[10px] font-bold text-ink">
+                        <span className="rounded-full bg-[#FFD700] px-2 py-0.5 text-[10px] font-black text-[#6D4AFF]">
                           ACTION REQUIRED
                         </span>
                       </div>
                       <div className="space-y-2">
                         {topDisruptions.map((item, idx) => (
-                          <div 
-                            key={item.id} 
+                          <div
+                            key={item.id}
                             onClick={() => openResource(item.id)}
-                            className="flex cursor-pointer items-center justify-between rounded-xl border border-transparent bg-white/80 p-2.5 transition hover:border-amber/40 hover:bg-mist/65"
+                            className="flex cursor-pointer items-center justify-between rounded-xl border border-transparent bg-white/80 p-2.5 transition hover:border-[#6D4AFF]/20 hover:bg-mist/65"
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-sm font-black text-slate/20">#{idx + 1}</span>
@@ -743,7 +778,7 @@ export function DashboardClient() {
                               </div>
                               <div className="text-right">
                                 <p className="text-[10px] font-bold text-slate/40 uppercase">Unmet</p>
-                                <p className="text-xs font-bold text-pine">{formatOneDecimal(item.unmet)}%</p>
+                                <p className="text-xs font-bold text-[#6D4AFF]">{formatOneDecimal(item.unmet)}%</p>
                               </div>
                             </div>
                           </div>
@@ -756,31 +791,31 @@ export function DashboardClient() {
                   {foodInsightsStats && (
                     <div className="flex flex-wrap gap-2 rounded-[22px] bg-white/60 border border-line/50 p-4 mb-2 shadow-sm backdrop-blur-sm justify-between">
                       <div className="flex-1 min-w-[60px] text-center">
-                        <p className="text-lg font-bold text-pine">{foodInsightsStats.produce}%</p>
+                        <p className="text-lg font-bold text-[#6D4AFF]">{foodInsightsStats.produce}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Produce</p>
                       </div>
                       <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
-                        <p className="text-lg font-bold text-pine">{foodInsightsStats.halal}%</p>
+                        <p className="text-lg font-bold text-[#6D4AFF]">{foodInsightsStats.halal}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Halal</p>
                       </div>
                       <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
-                        <p className="text-lg font-bold text-pine">{foodInsightsStats.kosher}%</p>
+                        <p className="text-lg font-bold text-[#6D4AFF]">{foodInsightsStats.kosher}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Kosher</p>
                       </div>
                       <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
-                        <p className="text-lg font-bold text-pine">{foodInsightsStats.protein}%</p>
+                        <p className="text-lg font-bold text-[#6D4AFF]">{foodInsightsStats.protein}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Protein</p>
                       </div>
                       <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
-                        <p className="text-lg font-bold text-pine">{foodInsightsStats.dairy}%</p>
+                        <p className="text-lg font-bold text-[#6D4AFF]">{foodInsightsStats.dairy}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Dairy</p>
                       </div>
                       <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
-                        <p className="text-lg font-bold text-pine">{foodInsightsStats.canned}%</p>
+                        <p className="text-lg font-bold text-[#6D4AFF]">{foodInsightsStats.canned}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Canned</p>
                       </div>
                       <div className="flex-1 min-w-[60px] text-center border-l border-line/40">
-                        <p className="text-lg font-bold text-pine">{foodInsightsStats.grains}%</p>
+                        <p className="text-lg font-bold text-[#6D4AFF]">{foodInsightsStats.grains}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Grains</p>
                       </div>
                     </div>
@@ -811,7 +846,7 @@ export function DashboardClient() {
                         <button type="button" onClick={goToPreviousPage} disabled={!canGoPrevious} className="inline-flex items-center gap-2 rounded-full border border-line/80 bg-white px-4 py-2 text-sm font-semibold text-slate transition hover:border-pine/30 hover:text-pine disabled:opacity-45">
                           <ChevronLeft className="h-4 w-4" /> Previous
                         </button>
-                        <button type="button" onClick={goToNextPage} disabled={!canGoNext || showPageTransitionLoading} className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-pine disabled:opacity-45">
+                        <button type="button" onClick={goToNextPage} disabled={!canGoNext || showPageTransitionLoading} className="inline-flex items-center gap-2 rounded-full bg-[#6D4AFF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#5a3de0] disabled:opacity-45">
                           {showPageTransitionLoading && <LoaderCircle className="h-4 w-4 animate-spin" />}
                           Next Page <ChevronRight className="h-4 w-4" />
                         </button>
