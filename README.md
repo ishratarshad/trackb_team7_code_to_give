@@ -1,78 +1,42 @@
-# LemonLens
+# Lemontree Pantry Dashboard
 
-LemonLens is an operational intelligence platform built for Lemontree as part of the Morgan Stanley Code to Give Hackathon. It transforms raw pantry data, client reviews, and food photos into actionable insights to help partners identify and address food access gaps across NYC.
+Current project state: a frontend-only Next.js dashboard for exploring food resources, map overlays, bookmarks, insights, and local feedback capture.
 
----
+## Quick Start
 
-## System Architecture
+```bash
+cd Pantry_Dashboard
+npm install
+npm run dev
+```
 
-LemonLens follows a multi-layer data processing pipeline designed for high scalability and real-time insights.
+Open the URL printed by the dev server. It starts on port `5000` by default and automatically moves to the next open port if that one is already in use.
 
+## Environment Variables
 
+Create `Pantry_Dashboard/.env.local` with:
 
-### Layer 1: Image Classification
-Food distribution photos are processed using the **Anthropic Claude Vision API** to extract structured tags (e.g., rice, protein, fresh produce) automatically.
+```bash
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_public_token
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=optional_google_static_street_view_key
+LEMONTREE_API_BASE_URL=https://platform.foodhelpline.org
+```
 
-### Layer 2: Supply Profiling
-Extracted tags are normalized into five major groups: Grains, Protein, Dairy, Fresh Produce, and Canned Goods to build a comprehensive inventory profile for each pantry location.
+## Project Structure
 
-### Layer 3: Insight Generation
-By combining supply profiles with operational signals like wait times and unmet demand, the system calculates a **Needs Score** and **Gap Score** to highlight the most critical areas.
+```text
+Pantry_Dashboard/
+  app/          Next.js routes and API handlers
+  components/   UI and dashboard components
+  hooks/        Client hooks
+  lib/          Utilities and adapters
+  services/     Frontend data access helpers
+  src/data/     Bundled dashboard datasets
+```
 
----
+## Notes
 
-## Key Features
-
-- **Visual Inventory Tracking**: Automatically detects food items from pantry photos to verify current stock levels.
-- **Operational Priority Board**: A real-time leaderboard ranking the Top 5 pantries with the highest demand pressure and supply shortages.
-- **Interactive Resource Map**: A Mapbox-powered visualization of 1,400+ NYC food locations with smart clustering and viewport-based insights.
-- **Live Supply Breakdown**: Dynamic charts showing the city-wide distribution of key food groups based on current map filters.
-- **Volunteer Feedback Loop**: A structured form that captures wait times, attendance, and inventory accuracy to enable automated trend detection.
-
----
-
-## Tech Stack
-
-**Frontend**
-- Next.js (App Router)
-- React
-- Tailwind CSS
-
-**Backend**
-- Next.js API Routes
-- Node.js
-
-**Infrastructure**
-- Mapbox GL JS (Mapping)
-- Anthropic Claude Vision API (AI)
-- Vercel (Deployment)
-
----
-
-## Setup and Installation
-
-1. **Clone the repository**
-   git clone [https://github.com/your-repo/lemonlens.git](https://github.com/your-repo/lemonlens.git)
-   cd lemonlens
-   
-2. **Install dependencies**
-   npm install
-   
-4. **Configure Environment Variables**
-   Create a .env.local file in the root directory:
-   - ANTHROPIC_API_KEY=your_api_key
-   - NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_token
-     
-5. **Run the development server**
-   npm run dev
-
-**Team Members**:
-- Ishrat Arshad
-- Rohit Karnik
-- Anish Yenduri
-- Nirmit Bhoyar
-- Philip Shaji Baby
-
-**Acknowledgments**
-
-We would like to express our sincere gratitude to our mentor, Nirali Maniar, for her invaluable guidance, support, and technical feedback throughout this hackathon.
+- No separate backend service is required.
+- Feedback submissions are stored locally in the browser.
+- If the Mapbox token is missing, the rest of the dashboard still loads and the map panel shows a fallback state.
+- If the Google Maps key is missing, image fallbacks are used where needed.
