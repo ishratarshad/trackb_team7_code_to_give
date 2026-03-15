@@ -1,6 +1,6 @@
 # LemonLens
 
-LemonLens is an operational intelligence platform built for **Lemontree** as part of the Morgan Stanley Code to Give Hackathon. It transforms raw pantry data, client feedback, and food photos into actionable insights to help nonprofit partners identify and address food access gaps across NYC.
+LemonLens is an operational intelligence platform built for Lemontree as part of the Morgan Stanley Code to Give Hackathon. It transforms raw pantry data, client reviews, and food photos into actionable insights to help partners identify and address food access gaps across NYC.
 
 ---
 
@@ -73,4 +73,5 @@ By combining supply profiles with operational signals like wait times and unmet 
 - Nirmit Bhoyar
 - Philip Shaji Baby
 
-**    
+**Acknowledgments**
+We would like to express our sincere gratitude to our mentor, Nirali Maniar, for her invaluable guidance, support, and technical feedback throughout this hackathon.
