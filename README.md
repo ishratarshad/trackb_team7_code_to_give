@@ -12,7 +12,7 @@ LemonLens follows a multi-layer data processing pipeline designed for high scala
 
 ### LemonLens Operational Flow
 
-![LemonLens System Architecture](images/dia.png)
+![LemonLens System Architecture](images/systemdesign.png)
 
 #### **1. Client Data Input**
 * **Action**: A client or volunteer visits a pantry and submits a mobile review.
