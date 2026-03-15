@@ -104,43 +104,41 @@ The result is a priority ranking that highlights which locations require immedia
 
 Partners interact with the data through a web dashboard that provides:
 
-### Map Exploration
-
-A Mapbox-powered visualization of more than 1,400 food resource locations across New York City.
-
-Locations are clustered dynamically and update based on viewport and filters.
-
-### Filtering and Search
-
-Users can filter resources by:
-
-- Borough
-- Food category
-- Service type
-- Operational priority
-
-This enables targeted exploration of supply gaps and service demand.
-
-### Priority Board
-
-A live ranking of the highest-need pantries based on the Needs Score.
-
-This allows organizations to quickly identify where food shipments or operational support should be directed.
-
----
-
-# Reporting and Insights
-
-The platform generates operational summaries including:
-
-- City-wide food supply breakdowns
-- Category shortages
-- Demand hotspots
-- Service disruptions
-
-Partners can export shareable PDF reports to coordinate with donors, logistics teams, and community organizations.
-
----
+   ### Map Exploration
+   
+   A Mapbox-powered visualization of more than 1,400 food resource locations across New York City.
+   
+   Locations are clustered dynamically and update based on viewport and filters.
+   
+   ### Filtering and Search
+   
+   Users can filter resources by:
+   
+   - Borough
+   - Food category
+   - Service type
+   - Operational priority
+   
+   This enables targeted exploration of supply gaps and service demand.
+   
+   ### Priority Board
+   
+   A live ranking of the highest-need pantries based on the Needs Score.
+   
+   This allows organizations to quickly identify where food shipments or operational support should be directed.
+   
+   ### Reporting and Insights
+   
+   The platform generates operational summaries including:
+   
+   - City-wide food supply breakdowns
+   - Category shortages
+   - Demand hotspots
+   - Service disruptions
+   
+   Partners can export shareable PDF reports to coordinate with donors, logistics teams, and community organizations.
+   
+   ---
 
 # Key Features
 
