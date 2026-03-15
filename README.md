@@ -74,4 +74,5 @@ By combining supply profiles with operational signals like wait times and unmet 
 - Philip Shaji Baby
 
 **Acknowledgments**
+
 We would like to express our sincere gratitude to our mentor, Nirali Maniar, for her invaluable guidance, support, and technical feedback throughout this hackathon.
