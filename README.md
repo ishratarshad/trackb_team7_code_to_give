@@ -1,5 +1,7 @@
 # LemonLens
 
+Live Demo: https://trackbteam7codetogive.vercel.app/
+
 LemonLens is an operational analytics platform built for the Lemontree nonprofit as part of the Morgan Stanley Code to Give Hackathon.
 
 Built with the **same tech stack as Lemontree** (Next.js, React, TypeScript, Vercel), LemonLens is designed for seamless integration into the existing platform.
@@ -88,6 +90,14 @@ Extracted food tags are standardized into supply profiles.
 
 Raw detections are grouped into consistent food categories that support filtering, aggregation, and analytics across locations.
 
+For example, item names like:
+
+- "Campbell's Chicken Noodle Soup"
+- "Jack & the Beanstalk Long Grain White Rice"
+- "Cheese Club Macaroni and Cheese"
+
+need to be standardized before they can support product-level insights. This helps group messy item detections into shared food categories, combine pantry supply data with other datasets such as demographics, and power dashboard filters and category-level analytics
+
 ---
 
 ## 4. Needs Scoring
@@ -103,9 +113,24 @@ This score combines:
 
 The result is a priority ranking that highlights which locations require immediate support.
 
+## 5. Feedback Processing
+
+In addition to pantry supply signals, the system supports a lightweight feedback pipeline for capturing operational experience data in structured JSON.
+
+This includes fields aligned with Lemontree’s review model, such as:
+
+- whether the client got help
+- rating
+- written feedback
+- wait time
+- whether listing information was accurate
+- reasons a client could not receive help
+
+This feedback layer is important because it complements pantry inventory data with real user experience signals.
+
 ---
 
-## 5. Partner Dashboard
+## 6. Partner Dashboard
 
 Partners interact with the data through a web dashboard that provides:
 
