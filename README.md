@@ -1,4 +1,4 @@
-# LemonLens 🍋
+# LemonLens 
 
 LemonLens is an operational intelligence platform built for **Lemontree** as part of the **Morgan Stanley Code to Give Hackathon**. It transforms pantry resource data, food photos, and structured user feedback into actionable insights by combining AI-based food detection, normalized supply profiling, and operational issue tracking to help partners identify and address food access gaps across NYC.
 
