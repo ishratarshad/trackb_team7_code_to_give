@@ -8,12 +8,6 @@ The system transforms community feedback, pantry reviews, and food inventory pho
 
 Instead of manually reviewing scattered feedback and images, LemonLens automatically categorizes food supply data, analyzes service signals such as wait times and unmet demand, and surfaces priority insights through an interactive dashboard.
 
-# Video:  
-https://youtu.be/4kvC4jmpLTg
-
-# Website Link:
-https://ms-hackathon-trackb-team7.vercel.app/?hasFreshProduce=1&nearbyRadiusMiles=0
-
 ---
 
 # Problem
@@ -51,6 +45,13 @@ Instead of manually interpreting reviews and images, partners can immediately se
 - Where the next shipment of resources should be sent
 
 ---
+
+# Video:  
+https://youtu.be/4kvC4jmpLTg
+
+# Website Link:
+https://ms-hackathon-trackb-team7.vercel.app/?hasFreshProduce=1&nearbyRadiusMiles=0
+
 
 ### LemonLens Operational Flow
 
