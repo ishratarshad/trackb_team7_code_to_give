@@ -46,21 +46,8 @@ LemonLens follows a multi-layer data processing pipeline designed for high scala
 
 ---
 
-## Tech Stack
+![LemonLens System Architecture](images/techstack.png)
 
-**Frontend**
-- Next.js (App Router)
-- React
-- Tailwind CSS
-
-**Backend**
-- Next.js API Routes
-- Node.js
-
-**Infrastructure**
-- Mapbox GL JS (Mapping)
-- Anthropic Claude Vision API (AI)
-- Vercel (Deployment)
 
 ---
 
