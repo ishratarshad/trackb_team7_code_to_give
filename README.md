@@ -1,53 +1,190 @@
-# LemonLens 
+# LemonLens
 
-LemonLens is an operational intelligence platform built for **Lemontree** as part of the **Morgan Stanley Code to Give Hackathon**. It transforms pantry resource data, food photos, and structured user feedback into actionable insights by combining AI-based food detection, normalized supply profiling, and operational issue tracking to help partners identify and address food access gaps across NYC.
+LemonLens is an operational analytics platform built for the Lemontree nonprofit as part of the Morgan Stanley Code to Give Hackathon.
+
+The system transforms community feedback, pantry reviews, and food inventory photos into structured operational insights that help food banks, donors, and partners make faster and more informed decisions about where food resources are needed most.
+
+Instead of manually reviewing scattered feedback and images, LemonLens automatically categorizes food supply data, analyzes service signals such as wait times and unmet demand, and surfaces priority insights through an interactive dashboard.
 
 ---
 
-## System Architecture
+# Problem
 
-LemonLens follows a multi-layer data processing pipeline designed for high scalability and real-time insights.
+Lemontree collects valuable community feedback about food access across New York City, including pantry reviews, wait times, and photos of available food resources.
 
+However, this information is difficult for partners to organize, interpret, and act on in real time.
 
+Current challenges include:
+
+- Pantry feedback and photos are unstructured and require manual review
+- Operational issues such as shortages or long wait times are difficult to detect quickly
+- Data is difficult to aggregate across neighborhoods or food categories
+- Partners lack a simple way to identify which pantries require urgent support
+
+As a result, food banks and donors often rely on incomplete or delayed information when deciding where to send resources.
+
+---
+
+# Solution
+
+LemonLens converts community feedback into real-time operational intelligence.
+
+The system automatically processes pantry photos, categorizes food inventory, analyzes demand signals, and visualizes trends through an interactive dashboard.
+
+This allows partners to quickly identify shortages, service disruptions, and high-demand locations across the city.
+
+Instead of manually interpreting reviews and images, partners can immediately see:
+
+- Which pantries are under the most pressure
+- What types of food are currently missing
+- Where operational issues are emerging
+- Where the next shipment of resources should be sent
+
+---
 
 ### LemonLens Operational Flow
 
 ![LemonLens System Architecture](images/systemdesign.png)
 
-#### **1. Client Data Input**
-* **Action**: A client or volunteer visits a pantry and submits a mobile review.
-* **Data Captured**: They record the wait time in minutes, confirm if they received help, and upload a photo of the food provided.
+## 1. Client Data Input
 
-#### **2. AI Image Processing (Layer 1)**
-* **System**: The raw photo is sent to the **Claude Vision API** for instant analysis.
-* **Result**: The AI extracts structured tags such as "fresh produce," "protein," or "dairy," replacing hours of manual photo review.
+Clients or volunteers visit a pantry and submit a mobile review.
 
-#### **3. Operational Logistics (Layer 2 & 3)**
-* **Normalization**: Raw tags are grouped into standardized supply profiles including Grains, Protein, Dairy, Produce, and Canned goods. This layer converts noisy detections into analytics-ready profiles that can support filtering, aggregation, and dashboard insights.
-* **Scoring**: The system merges this supply data with wait times and unmet demand signals to calculate a real-time **Needs Score**.
+Data captured includes:
 
-#### **4. Partner Dashboard Interaction**
-* **Map Exploration**: Partners log in to view 1,400+ NYC locations clustered on a **Mapbox** map.
-* **Filtering**: Users filter by borough or dietary needs (e.g., "Protein in Brooklyn") to see which pantries have the highest priority scores.
+- Wait time in minutes
+- Whether assistance was received
+- A photo of the available food
+- Optional written feedback
 
-#### **5. Reporting & Action**
-* **Insights Bar**: The dashboard calculates a live supply breakdown for the current neighborhood view.
-* **Decision Making**: Partners export a PDF operational report to share shortage alerts with donors and logistics teams for immediate supply rerouting.
+This creates a real-time signal about pantry operations and available resources.
 
 ---
 
-## Key Features
+## 2. AI Image Processing
 
-- **AI-Based Inventory Tracking**: Automatically detects food items from pantry photos to verify current stock levels.
-- **Operational Priority Board**: A real-time leaderboard ranking the Top 5 pantries with the highest demand pressure and supply shortages.
-- **Interactive Resource Map**: A Mapbox-powered visualization of 1,400+ NYC food locations with smart clustering and viewport-based insights.
-- **Live Supply Breakdown**: Dynamic charts showing the city-wide distribution of key food groups based on current map filters.
-- **Feedback Intelligence System**: A structured feedback workflow captures whether users received help, wait times, listing accuracy, ratings, written comments, and standardized “did not receive help” reasons to help detect recurring operational issues like shortages, service disruptions, and inaccurate listings.
+Pantry photos are analyzed using the Claude Vision API.
+
+The system extracts structured food tags such as:
+
+- Produce
+- Protein
+- Dairy
+- Grains
+- Canned goods
+
+This replaces hours of manual photo review and converts visual data into structured inventory signals.
 
 ---
 
-![LemonLens System Architecture](images/techstack.png)
+## 3. Data Normalization
 
+Extracted food tags are standardized into supply profiles.
+
+Raw detections are grouped into consistent food categories that support filtering, aggregation, and analytics across locations.
+
+---
+
+## 4. Needs Scoring
+
+LemonLens generates a real-time Needs Score for each pantry.
+
+This score combines:
+
+- Detected food supply
+- Wait time signals
+- Reports of unmet demand
+- Operational feedback from users
+
+The result is a priority ranking that highlights which locations require immediate support.
+
+---
+
+## 5. Partner Dashboard
+
+Partners interact with the data through a web dashboard that provides:
+
+### Map Exploration
+
+A Mapbox-powered visualization of more than 1,400 food resource locations across New York City.
+
+Locations are clustered dynamically and update based on viewport and filters.
+
+### Filtering and Search
+
+Users can filter resources by:
+
+- Borough
+- Food category
+- Service type
+- Operational priority
+
+This enables targeted exploration of supply gaps and service demand.
+
+### Priority Board
+
+A live ranking of the highest-need pantries based on the Needs Score.
+
+This allows organizations to quickly identify where food shipments or operational support should be directed.
+
+---
+
+# Reporting and Insights
+
+The platform generates operational summaries including:
+
+- City-wide food supply breakdowns
+- Category shortages
+- Demand hotspots
+- Service disruptions
+
+Partners can export shareable PDF reports to coordinate with donors, logistics teams, and community organizations.
+
+---
+
+# Key Features
+
+## 1.) AI-Based Inventory Detection
+
+Automatically detects food categories from pantry photos using computer vision.
+
+## 2.) Operational Priority Board
+
+Ranks pantries by urgency using real-time operational signals.
+
+## 3.) Interactive Resource Map
+
+Mapbox-powered visualization of 1,400+ NYC food locations with clustering and viewport filtering.
+
+## 4.) Live Supply Analytics
+
+Dynamic charts showing distribution of food categories across the city.
+
+## 5.) Feedback Intelligence System
+
+Aggregates user feedback including wait times, service success, listing accuracy, and unmet demand signals to identify recurring operational issues.
+
+---
+
+# Impact
+
+LemonLens helps partners answer a critical operational question:
+
+**Where should the next shipment of food go right now?**
+
+By transforming raw community feedback into structured analytics, the platform enables faster and more informed decisions about food distribution and resource allocation.
+
+This helps improve service reliability, reduce shortages, and strengthen food access across communities.
+
+---
+# Future Improvements
+
+Potential extensions of the platform include:
+
+- Integration with public datasets such as demographic and health indicators
+- Predictive models for food demand forecasting
+- Automated alerting for emerging shortages
+- Expanded analytics for nonprofit partners and city agencies
 
 ---
 
@@ -67,6 +204,15 @@ LemonLens follows a multi-layer data processing pipeline designed for high scala
      
 5. **Run the development server**
    npm run dev
+   
+![LemonLens System Architecture](images/techstack.png)
+
+
+# Hackathon Context
+
+LemonLens was developed during the Morgan Stanley Code to Give Hackathon for Lemontree NYC.
+
+The project demonstrates how data processing and visualization can transform community feedback into actionable insights that strengthen food access operations.
 
 **Team Members**:
 - Ishrat Arshad
