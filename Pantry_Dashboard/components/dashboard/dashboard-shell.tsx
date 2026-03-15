@@ -4,18 +4,18 @@ import Link from 'next/link';
 import { Map, Bookmark } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
-import { cn } from '@/lib/cn';
-
 export function DashboardShell({
   title,
   description,
   children,
   aside,
+  showBookmarksNav = true,
 }: {
   title: React.ReactNode;
   description: string;
   children: React.ReactNode;
   aside?: React.ReactNode;
+  showBookmarksNav?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -26,34 +26,37 @@ export function DashboardShell({
       <div className="relative flex min-h-screen w-full flex-col">
 
         {/* TOP NAV BAR — Lemontree yellow strip */}
-        <div className="bg-[#FFD700] px-6 py-4 flex items-center justify-between shadow-sm">
+        <div className="flex items-center justify-between bg-[#FFD700] px-6 py-4 shadow-sm">
           <span className="text-[#6D4AFF] text-base font-black uppercase tracking-widest">
             LemonLens
-          </span>      
+          </span>
           <div className="flex items-center gap-2">
             {pathname !== '/' ? (
               <TopNavLink href="/" icon={<Map className="h-4 w-4" />}>Explore</TopNavLink>
             ) : null}
-            <TopNavLink href="/bookmarks" icon={<Bookmark className="h-4 w-4" />}>Bookmarks</TopNavLink>
+            {showBookmarksNav ? (
+              <TopNavLink href="/bookmarks" icon={<Bookmark className="h-4 w-4" />}>Bookmarks</TopNavLink>
+            ) : null}
           </div>
         </div>
 
         {/* PURPLE HERO — matches Lemontree's hero section */}
-        <header className="relative overflow-hidden bg-[#6D4AFF] px-8 py-14 lg:px-16 lg:py-20">          {/* Decorative yellow glow */}
+        <header className="relative overflow-hidden bg-[#6D4AFF] px-8 py-9 sm:py-10 lg:px-16 lg:py-12">
+          {/* Decorative yellow glow */}
           <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-[#FFD700] opacity-15 blur-3xl pointer-events-none" />
 
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between max-w-[1920px] mx-auto w-full">
+          <div className="relative mx-auto flex w-full max-w-[1920px] flex-col gap-4 lg:gap-5 xl:flex-row xl:items-center xl:justify-between">
             <div className="max-w-3xl">
               {/* Title injected from DashboardClient */}
               <div className="text-white antialiased">
                 {title}
               </div>
-              <p className="mt-4 max-w-2xl text-base font-medium leading-relaxed text-white/90 lg:text-xl">
+              <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-white/90 sm:text-base lg:text-lg">
                 {description}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               {aside}
             </div>
           </div>

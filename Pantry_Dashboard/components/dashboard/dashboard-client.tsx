@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { startTransition, useDeferredValue, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react';
+import { Bookmark, ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react';
 import {
   useRouter,
   useSearchParams,
@@ -680,20 +681,21 @@ export function DashboardClient() {
 return (
     <>
       <DashboardShell
+        showBookmarksNav={false}
         title={
-          <div className="flex flex-col gap-1">
-            <h1 className="text-5xl font-black leading-tight tracking-tight text-white sm:text-6xl xl:text-7xl">
+          <div className="flex flex-col gap-0.5">
+            <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl xl:text-6xl">
               LemonLens
             </h1>
-            <h2 className="text-lg font-semibold text-white/80">
+            <h2 className="text-base font-semibold text-white/80 sm:text-lg">
               Food resource operations dashboard
             </h2>
           </div>
         }
         description="Explore pantry and meal-service locations on the map, scan compact cards, and view dietary availability insights."
         aside={
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-full border border-white/20 bg-white/10 p-1 backdrop-blur-md">
+          <div className="flex w-full flex-wrap items-center gap-2.5 xl:w-auto xl:justify-end">
+            <div className="flex flex-wrap items-center rounded-full border border-white/20 bg-white/10 p-1 backdrop-blur-md">
               <button
                 type="button"
                 onClick={() => updateView('explore')}
@@ -722,7 +724,14 @@ return (
                 Feedback
               </button>
             </div>
-            <div className="rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-md">
+            <Link
+              href="/bookmarks"
+              className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur-md transition hover:bg-white/15"
+            >
+              <Bookmark className="h-4 w-4" />
+              Bookmarks
+            </Link>
+            <div className="whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur-md">
               {markersQuery.data?.markers.length ?? 0} map pins
             </div>
           </div>
