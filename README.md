@@ -50,8 +50,7 @@ Instead of manually interpreting reviews and images, partners can immediately se
 https://youtu.be/4kvC4jmpLTg
 
 # Website Link:
-https://ms-hackathon-trackb-team7.vercel.app/?hasFreshProduce=1&nearbyRadiusMiles=0
-
+https://lemonlens.vercel.app/
 
 ### LemonLens Operational Flow
 
