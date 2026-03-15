@@ -1,6 +1,6 @@
 # LemonLens
 
-LemonLens is an operational intelligence platform built for **Lemontree** as part of the Morgan Stanley Code to Give Hackathon. It transforms raw pantry data, client feedback, and food photos into actionable insights to help nonprofit partners identify and address food access gaps across NYC.
+LemonLens is an operational intelligence platform built for **Lemontree** as part of the **Morgan Stanley Code to Give Hackathon**. It transforms raw pantry data, client feedback, and food photos into actionable insights to help nonprofit partners identify and address food access gaps across NYC.
 
 ---
 
@@ -10,14 +10,27 @@ LemonLens follows a multi-layer data processing pipeline designed for high scala
 
 
 
-### Layer 1: Image Classification
-Food distribution photos are processed using the **Anthropic Claude Vision API** to extract structured tags (e.g., rice, protein, fresh produce) automatically.
+### LemonLens Operational Flow
 
-### Layer 2: Supply Profiling
-Extracted tags are normalized into five major groups: Grains, Protein, Dairy, Fresh Produce, and Canned Goods to build a comprehensive inventory profile for each pantry location.
+#### **1. Client Data Input**
+* **Action**: A client or volunteer visits a pantry and submits a mobile review.
+* **Data Captured**: They record the wait time in minutes, confirm if they received help, and upload a photo of the food provided.
 
-### Layer 3: Insight Generation
-By combining supply profiles with operational signals like wait times and unmet demand, the system calculates a **Needs Score** and **Gap Score** to highlight the most critical areas.
+#### **2. AI Image Processing (Layer 1)**
+* **System**: The raw photo is sent to the **Claude Vision API** for instant analysis.
+* **Result**: The AI extracts structured tags such as "fresh produce," "protein," or "dairy," replacing hours of manual photo review.
+
+#### **3. Operational Logistics (Layer 2 & 3)**
+* **Normalization**: Raw tags are grouped into standardized supply profiles including Grains, Protein, Dairy, Produce, and Canned goods.
+* **Scoring**: The system merges this supply data with wait times and unmet demand signals to calculate a real-time **Needs Score**.
+
+#### **4. Partner Dashboard Interaction**
+* **Map Exploration**: Partners log in to view 1,400+ NYC locations clustered on a **Mapbox** map.
+* **Filtering**: Users filter by borough or dietary needs (e.g., "Protein in Brooklyn") to see which pantries have the highest priority scores.
+
+#### **5. Reporting & Action**
+* **Insights Bar**: The dashboard calculates a live supply breakdown for the current neighborhood view.
+* **Decision Making**: Partners export a PDF operational report to share shortage alerts with donors and logistics teams for immediate supply rerouting.
 
 ---
 
@@ -73,3 +86,9 @@ By combining supply profiles with operational signals like wait times and unmet 
 - Nirmit Bhoyar
 - Philip Shaji Baby
 
+**Acknowledgments**
+
+We would like to thank **Morgan Stanley** for hosting the **Code to Give Hackathon** and providing this platform for social impact. We also express our sincere gratitude to our mentor, **Nirali Maniar**, for her invaluable guidance, support, and technical feedback throughout this project!
+
+## License
+This project is open source and available under the **MIT License**.
