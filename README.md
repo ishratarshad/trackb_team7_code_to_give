@@ -1,6 +1,6 @@
 # LemonLens
 
-LemonLens is an operational intelligence platform built for **Lemontree** as part of the **Morgan Stanley Code to Give Hackathon**. It transforms raw pantry data, client feedback, and food photos into actionable insights to help nonprofit partners identify and address food access gaps across NYC.
+LemonLens is an operational intelligence platform built for **Lemontree** as part of the **Morgan Stanley Code to Give Hackathon**. It transforms pantry resource data, food photos, and structured user feedback into actionable insights by combining AI-based food detection, normalized supply profiling, and operational issue tracking to help partners identify and address food access gaps across NYC.
 
 ---
 
@@ -21,7 +21,7 @@ LemonLens follows a multi-layer data processing pipeline designed for high scala
 * **Result**: The AI extracts structured tags such as "fresh produce," "protein," or "dairy," replacing hours of manual photo review.
 
 #### **3. Operational Logistics (Layer 2 & 3)**
-* **Normalization**: Raw tags are grouped into standardized supply profiles including Grains, Protein, Dairy, Produce, and Canned goods.
+* **Normalization**: Raw tags are grouped into standardized supply profiles including Grains, Protein, Dairy, Produce, and Canned goods. This layer converts noisy detections into analytics-ready profiles that can support filtering, aggregation, and dashboard insights.
 * **Scoring**: The system merges this supply data with wait times and unmet demand signals to calculate a real-time **Needs Score**.
 
 #### **4. Partner Dashboard Interaction**
@@ -40,7 +40,7 @@ LemonLens follows a multi-layer data processing pipeline designed for high scala
 - **Operational Priority Board**: A real-time leaderboard ranking the Top 5 pantries with the highest demand pressure and supply shortages.
 - **Interactive Resource Map**: A Mapbox-powered visualization of 1,400+ NYC food locations with smart clustering and viewport-based insights.
 - **Live Supply Breakdown**: Dynamic charts showing the city-wide distribution of key food groups based on current map filters.
-- **Volunteer Feedback Loop**: A structured form that captures wait times, attendance, and inventory accuracy to enable automated trend detection.
+- **Feedback Intelligence System**: A structured feedback workflow captures whether users received help, wait times, listing accuracy, ratings, written comments, and standardized “did not receive help” reasons to help detect recurring operational issues like shortages, service disruptions, and inaccurate listings.
 
 ---
 
