@@ -14,7 +14,7 @@ Instead of manually reviewing scattered feedback and images, LemonLens automatic
 
 # Problem
 
-Lemontree has rich data on 1,400+ food pantries, but partners like the NYC Mayor's Office can't easily explore it. Questions like "Does the food in Jackson Heights match South Asian dietary preferences?" take days to answer manually.
+Lemontree has rich data on 1,400+ food pantries, but partners like the NYC Mayor's Office can't easily explore it.
 
 Lemontree collects valuable community feedback about food access across New York City, including pantry reviews, wait times, and photos of available food resources. However, this information is difficult for partners to organize, interpret, and act on in real time.
 
