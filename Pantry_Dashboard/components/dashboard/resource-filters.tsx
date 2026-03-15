@@ -32,8 +32,6 @@ export function ResourceFilters({
   const sortOptions = useMemo(
     () => [
       { id: 'alpha-asc', label: 'Alphabetical' },
-      { id: 'open-now', label: 'Open now first' },
-      { id: 'open-soon', label: 'Open soonest' },
       { id: 'wait-desc', label: 'Highest wait time' },
       { id: 'rating-desc', label: 'Highest rating' },
       { id: 'rating-asc', label: 'Lowest rating' },
@@ -59,7 +57,6 @@ export function ResourceFilters({
         Boolean(filters.borough),
         Boolean(filters.resourceTypeId),
         Boolean(filters.tagId),
-        filters.openSoonOnly,
         !filters.syncListToMap,
         filters.hasHalal,
         filters.hasKosher,
@@ -133,23 +130,7 @@ export function ResourceFilters({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <ToggleRow
-            label="Open now"
-            description="Only show locations confirmed open"
-            checked={filters.openNowOnly}
-            compact
-            onToggle={() =>
-              onChange({
-                openNowOnly: !filters.openNowOnly,
-                openSoonOnly: filters.openNowOnly ? filters.openSoonOnly : false,
-              })
-            }
-          />
-
-          <div className="h-6 w-px bg-line/60 mx-1 hidden sm:block" />
-
-          {/* TEAM 7: UPDATED QUICK FILTERS */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <QuickFilterChip
             label="Fresh Produce"
             active={filters.hasFreshProduce}
@@ -207,7 +188,7 @@ export function ResourceFilters({
 
       {showAdvanced ? (
         <div className="rounded-[24px] border border-line/80 bg-white/75 p-4 shadow-sm">
-          <div className="grid gap-2.5 lg:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-2.5 lg:grid-cols-2 xl:grid-cols-3">
             <FilterSelect
               label="Borough"
               value={filters.borough}
@@ -226,17 +207,6 @@ export function ResourceFilters({
               value={filters.tagId}
               options={tags}
               onChange={(value: string) => onChange({ tagId: value })}
-            />
-            <ToggleRow
-              label="Open soon"
-              description="Confirmed upcoming occurrence"
-              checked={filters.openSoonOnly}
-              onToggle={() =>
-                onChange({
-                  openSoonOnly: !filters.openSoonOnly,
-                  openNowOnly: filters.openSoonOnly ? filters.openNowOnly : false,
-                })
-              }
             />
           </div>
 
@@ -333,24 +303,17 @@ function ToggleRow({
   description,
   checked,
   onToggle,
-  compact = false,
 }: {
   label: string;
   description: string;
   checked: boolean;
   onToggle: () => void;
-  compact?: boolean;
 }) {
   return (
-    <div
-      className={cn(
-        'flex items-center justify-between rounded-[22px] border border-line/80 bg-white/85 px-4 text-sm',
-        compact ? 'py-2.5' : 'py-3',
-      )}
-    >
+    <div className="flex items-center justify-between rounded-[22px] border border-line/80 bg-white/85 px-4 py-3 text-sm">
       <div>
         <p className="font-semibold text-ink">{label}</p>
-        {!compact ? <p className="text-xs text-slate">{description}</p> : null}
+        <p className="text-xs text-slate">{description}</p>
       </div>
       <button
         type="button"
@@ -384,7 +347,7 @@ function QuickFilterChip({
       className={cn(
         'rounded-full border px-3.5 py-2 text-sm font-semibold transition whitespace-nowrap',
         active
-          ? 'border-pine/30 bg-pine text-white'
+          ? 'border-amber/70 bg-amber text-ink shadow-soft'
           : 'border-line/80 bg-white/85 text-slate hover:border-pine/30 hover:text-pine',
       )}
     >

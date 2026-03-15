@@ -61,12 +61,12 @@ export function ResourceCard({
           overlay={
             <div className="flex items-end justify-between gap-2">
               {resourceTypeLabel ? (
-                <div className="rounded-full bg-white/92 px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-pine shadow-soft">
+                <div className="max-w-full truncate whitespace-nowrap rounded-full border border-pine/30 bg-pine px-3 py-1.5 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-white shadow-soft">
                   {resourceTypeLabel}
                 </div>
               ) : null}
               {nearby ? (
-                <div className="rounded-full bg-amber/95 px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white shadow-soft">
+                <div className="rounded-full bg-amber/95 px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-ink shadow-soft">
                   Nearby
                 </div>
               ) : null}
@@ -96,7 +96,7 @@ export function ResourceCard({
               </span>
             ) : null}
             {showAverageWait ? (
-              <span className="status-pill bg-amber/10 text-amber">
+              <span className="status-pill bg-amber/20 text-ink">
                 {formatWaitTime(averageWaitMinutes)}
               </span>
             ) : null}

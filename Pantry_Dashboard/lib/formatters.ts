@@ -1,5 +1,21 @@
 import { format, isValid, parseISO } from 'date-fns';
 
+const oneDecimalFormatter = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 1,
+});
+
+export function roundToOneDecimal(value: number) {
+  return Math.round(value * 10) / 10;
+}
+
+export function formatOneDecimal(value: number | null | undefined) {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return null;
+  }
+
+  return oneDecimalFormatter.format(roundToOneDecimal(value));
+}
+
 export function compactNumber(value: number | null | undefined) {
   if (typeof value !== 'number' || Number.isNaN(value)) {
     return '0';
@@ -24,14 +40,16 @@ export function formatWaitTime(value: number | null | undefined) {
     return 'Unknown wait';
   }
 
-  if (value < 60) {
-    return `${Math.round(value)} min`;
+  const roundedValue = roundToOneDecimal(value);
+
+  if (roundedValue < 60) {
+    return `${formatOneDecimal(roundedValue)} min`;
   }
 
-  const hours = Math.floor(value / 60);
-  const minutes = Math.round(value % 60);
+  const hours = Math.floor(roundedValue / 60);
+  const minutes = roundToOneDecimal(roundedValue % 60);
 
-  return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+  return minutes ? `${hours}h ${formatOneDecimal(minutes)}m` : `${hours}h`;
 }
 
 export function formatDistanceMiles(value: number | null | undefined) {
@@ -42,7 +60,7 @@ export function formatDistanceMiles(value: number | null | undefined) {
   return value < 1 ? `${Math.round(value * 5280)} ft` : `${value.toFixed(1)} mi`;
 }
 
-export function formatPercentage(value: number | null | undefined, digits = 0) {
+export function formatPercentage(value: number | null | undefined, digits = 1) {
   if (typeof value !== 'number' || Number.isNaN(value)) {
     return 'Unavailable';
   }

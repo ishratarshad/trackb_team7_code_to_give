@@ -81,7 +81,7 @@ export function ResourceDetailContent({
                 </span>
               ) : null}
               {showReviewCount ? (
-                <span className="status-pill bg-amber/10 text-amber">
+                <span className="status-pill bg-amber/20 text-ink">
                   {compactNumber(resource.reviewCount)} reviews
                 </span>
               ) : null}

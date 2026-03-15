@@ -24,7 +24,10 @@ export function BookmarkButton({
         toggle(resource);
       }}
       className={cn(
-        'inline-flex h-11 w-11 items-center justify-center rounded-full border border-line/80 bg-white/85 text-slate shadow-soft transition hover:border-pine/30 hover:text-pine',
+        'inline-flex h-11 w-11 items-center justify-center rounded-full border shadow-soft transition',
+        bookmarked
+          ? 'border-amber/70 bg-amber/25 text-pine hover:border-amber hover:bg-amber/35'
+          : 'border-line/80 bg-white/85 text-slate hover:border-pine/30 hover:text-pine',
         className,
       )}
     >

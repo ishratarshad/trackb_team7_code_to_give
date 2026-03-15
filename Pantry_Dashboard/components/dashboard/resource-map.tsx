@@ -42,6 +42,12 @@ const EMPTY_POLYGON_COLLECTION: FeatureCollection<Polygon> = {
   features: [],
 };
 
+const BRAND_PURPLE = '#704DBD';
+const BRAND_PURPLE_DARK = '#5B458F';
+const BRAND_YELLOW = '#FFCC10';
+const BRAND_YELLOW_LIGHT = '#FFE58A';
+const BRAND_SURFACE = '#FFFDF4';
+
 function createMarkerCollection(markers: ResourceMarker[]): FeatureCollection<Point> {
   if (!markers.length) {
     return EMPTY_POINT_COLLECTION;
@@ -103,7 +109,7 @@ const clusterLayer: any = {
   type: 'circle',
   filter: ['has', 'point_count'],
   paint: {
-    'circle-color': '#8f5f12',
+    'circle-color': BRAND_PURPLE_DARK,
     'circle-radius': ['step', ['get', 'point_count'], 18, 12, 22, 28, 28],
     'circle-opacity': 0.84,
   },
@@ -127,10 +133,10 @@ const pointLayer: any = {
   type: 'circle',
   filter: ['!', ['has', 'point_count']],
   paint: {
-    'circle-color': '#dcb04b',
+    'circle-color': BRAND_YELLOW,
     'circle-radius': 7,
     'circle-stroke-width': 2,
-    'circle-stroke-color': '#fff7ea',
+    'circle-stroke-color': BRAND_SURFACE,
   },
 };
 
@@ -139,11 +145,11 @@ const listedHaloLayer: any = {
   type: 'circle',
   minzoom: 10.5,
   paint: {
-    'circle-color': '#f3da86',
+    'circle-color': BRAND_YELLOW_LIGHT,
     'circle-radius': 12,
     'circle-opacity': 0.38,
     'circle-stroke-width': 2,
-    'circle-stroke-color': '#8f5f12',
+    'circle-stroke-color': BRAND_PURPLE,
     'circle-stroke-opacity': 0.68,
   },
 };
@@ -152,10 +158,10 @@ const nearbyLayer: any = {
   id: 'nearby-point',
   type: 'circle',
   paint: {
-    'circle-color': '#dcb04b',
+    'circle-color': BRAND_YELLOW,
     'circle-radius': 9,
     'circle-stroke-width': 3,
-    'circle-stroke-color': '#fff7ea',
+    'circle-stroke-color': BRAND_PURPLE,
   },
 };
 
@@ -163,10 +169,10 @@ const selectedLayer: any = {
   id: 'selected-point',
   type: 'circle',
   paint: {
-    'circle-color': '#8f5f12',
+    'circle-color': BRAND_PURPLE,
     'circle-radius': 11,
     'circle-stroke-width': 4,
-    'circle-stroke-color': '#ffffff',
+    'circle-stroke-color': BRAND_YELLOW_LIGHT,
   },
 };
 
@@ -174,8 +180,8 @@ const radiusFillLayer: any = {
   id: 'radius-fill',
   type: 'fill',
   paint: {
-    'fill-color': '#b27a1c',
-    'fill-opacity': 0.09,
+    'fill-color': BRAND_YELLOW,
+    'fill-opacity': 0.1,
   },
 };
 
@@ -183,35 +189,9 @@ const radiusLineLayer: any = {
   id: 'radius-outline',
   type: 'line',
   paint: {
-    'line-color': '#8f5f12',
+    'line-color': BRAND_PURPLE,
     'line-width': 2,
     'line-dasharray': [2, 2],
-  },
-};
-
-const highPovertyLayer: any = {
-  id: 'high-poverty-fill',
-  type: 'circle',
-  paint: {
-    'circle-color': '#f97316', // Orange
-    'circle-radius': 22,
-    'circle-opacity': 0.25,
-    'circle-stroke-width': 2,
-    'circle-stroke-color': '#ea580c',
-    'circle-stroke-opacity': 0.7,
-  },
-};
-
-const highSnapLayer: any = {
-  id: 'high-snap-fill',
-  type: 'circle',
-  paint: {
-    'circle-color': '#8b5cf6', // Violet
-    'circle-radius': 22,
-    'circle-opacity': 0.3,
-    'circle-stroke-width': 2,
-    'circle-stroke-color': '#7c3aed',
-    'circle-stroke-opacity': 0.8,
   },
 };
 
@@ -438,11 +418,11 @@ export function ResourceMap({
 
   const overlayOptions = [
     { id: 'none' as const, label: 'No Overlay', icon: null, color: '' },
-    { id: 'poverty' as const, label: 'High Poverty (>20%)', icon: TrendingDown, color: 'text-orange-500' },
-    { id: 'snap' as const, label: 'High SNAP (>20%)', icon: CreditCard, color: 'text-violet-500' },
+    { id: 'poverty' as const, label: 'High Poverty (>20%)', icon: TrendingDown, color: 'text-[#b68900]' },
+    { id: 'snap' as const, label: 'High SNAP (>20%)', icon: CreditCard, color: 'text-pine' },
   ];
 
-  const activeOption = overlayOptions.find(o => o.id === activeOverlay) ?? overlayOptions[0];
+  const activeOption = overlayOptions.find((option) => option.id === activeOverlay) ?? overlayOptions[0];
 
   return (
     <div className="relative h-full min-h-[560px] overflow-hidden rounded-[28px]">
@@ -453,17 +433,21 @@ export function ResourceMap({
           onClick={() => setShowOverlayMenu(!showOverlayMenu)}
           className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold shadow-lg transition ${
             activeOverlay !== 'none'
-              ? 'bg-ink text-white'
-              : 'bg-white text-slate hover:bg-gray-100 border border-gray-200'
+              ? 'bg-pine text-white'
+              : 'border border-line/80 bg-white/95 text-slate hover:border-pine/20 hover:text-pine'
           }`}
         >
-          {activeOption.icon && <activeOption.icon className={`h-3.5 w-3.5 ${activeOverlay !== 'none' ? 'text-white' : activeOption.color}`} />}
+          {activeOption.icon ? (
+            <activeOption.icon
+              className={`h-3.5 w-3.5 ${activeOverlay !== 'none' ? 'text-white' : activeOption.color}`}
+            />
+          ) : null}
           {activeOverlay === 'none' ? 'Overlays' : activeOption.label}
           <ChevronDown className={`h-3 w-3 transition-transform ${showOverlayMenu ? 'rotate-180' : ''}`} />
         </button>
 
         {showOverlayMenu && (
-          <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+          <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-xl border border-line/80 bg-white/95 shadow-xl">
             {overlayOptions.map((option) => (
               <button
                 key={option.id}
@@ -472,8 +456,8 @@ export function ResourceMap({
                   setActiveOverlay(option.id);
                   setShowOverlayMenu(false);
                 }}
-                className={`w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-left transition hover:bg-gray-50 ${
-                  activeOverlay === option.id ? 'bg-mist' : ''
+                className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-xs font-semibold transition hover:bg-mist/45 ${
+                  activeOverlay === option.id ? 'bg-mist/60 text-ink' : 'text-slate'
                 }`}
               >
                 {option.icon ? (
@@ -483,7 +467,7 @@ export function ResourceMap({
                 )}
                 {option.label}
                 {activeOverlay === option.id && (
-                  <span className="ml-auto text-pine">✓</span>
+                  <span className="ml-auto text-[#b68900]">✓</span>
                 )}
               </button>
             ))}
@@ -494,13 +478,13 @@ export function ResourceMap({
       {/* Overlay Legend */}
       {activeOverlay !== 'none' && (
         <div
-          className="absolute bottom-3 right-3 rounded-xl bg-white/95 px-3 py-2 shadow-lg border border-gray-200"
+          className="absolute bottom-3 right-3 rounded-xl border border-line/80 bg-white/95 px-3 py-2 shadow-lg"
           style={{ zIndex: 1000 }}
         >
           <div className="flex items-center gap-2 text-xs font-semibold">
             <span
               className={`w-4 h-4 rounded-full opacity-60 ${
-                activeOverlay === 'poverty' ? 'bg-orange-500' : 'bg-violet-500'
+                activeOverlay === 'poverty' ? 'bg-amber' : 'bg-pine'
               }`}
             />
             <span className="text-slate">
@@ -624,18 +608,18 @@ export function ResourceMap({
               id={`layer-${activeOverlay}`}
               type="circle"
               paint={activeOverlay === 'poverty' ? {
-                'circle-color': '#f97316',
+                'circle-color': BRAND_YELLOW,
                 'circle-radius': 22,
                 'circle-opacity': 0.25,
                 'circle-stroke-width': 2,
-                'circle-stroke-color': '#ea580c',
+                'circle-stroke-color': '#c69c00',
                 'circle-stroke-opacity': 0.7,
               } : {
-                'circle-color': '#8b5cf6',
+                'circle-color': BRAND_PURPLE,
                 'circle-radius': 22,
                 'circle-opacity': 0.3,
                 'circle-stroke-width': 2,
-                'circle-stroke-color': '#7c3aed',
+                'circle-stroke-color': BRAND_PURPLE_DARK,
                 'circle-stroke-opacity': 0.8,
               }}
             />

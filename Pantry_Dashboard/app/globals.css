@@ -8,6 +8,8 @@
   color-scheme: light;
   --font-sans: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif;
   --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+  --brand-yellow: 255, 204, 16;
+  --brand-purple: 112, 77, 189;
 }
 
 html {
@@ -17,13 +19,13 @@ html {
 body {
   font-family: var(--font-sans);
   background:
-    radial-gradient(circle at top left, rgba(221, 176, 66, 0.2), transparent 30%),
-    radial-gradient(circle at top right, rgba(155, 104, 19, 0.12), transparent 28%),
-    linear-gradient(180deg, #fcf7ee 0%, #f8f1e2 44%, #f1e4c9 100%);
+    radial-gradient(circle at top left, rgba(var(--brand-yellow), 0.24), transparent 30%),
+    radial-gradient(circle at top right, rgba(var(--brand-purple), 0.12), transparent 28%),
+    linear-gradient(180deg, #fdfbf6 0%, #faf8f2 44%, #f5f0e6 100%);
 }
 
 ::selection {
-  background: rgba(155, 104, 19, 0.18);
+  background: rgba(var(--brand-yellow), 0.34);
 }
 
 @layer base {
@@ -50,7 +52,8 @@ body {
 
 @layer components {
   .panel-surface {
-    @apply rounded-[28px] border border-white/70 bg-card/90 shadow-card backdrop-blur;
+    @apply rounded-[28px] border border-white/80 shadow-card backdrop-blur;
+    background-color: rgb(255 253 248 / 0.92);
   }
 
   .subtle-panel {
@@ -58,7 +61,7 @@ body {
   }
 
   .metric-tile {
-    @apply rounded-3xl border border-line/70 bg-mist/70 p-4;
+    @apply rounded-3xl border border-line/70 bg-mist/55 p-4;
   }
 
   .status-pill {
@@ -69,7 +72,7 @@ body {
 .mapboxgl-popup-content {
   border-radius: 24px;
   padding: 0;
-  box-shadow: 0 18px 45px rgba(51, 35, 8, 0.18);
+  box-shadow: 0 18px 45px rgba(38, 28, 56, 0.18);
 }
 
 .mapboxgl-popup-close-button {

@@ -3,8 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "sync:supply-profiles": "node scripts/syncSupplyProfiles.js",
-    "dev": "next dev",
+    "dev": "next dev --port 5002",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

@@ -28,6 +28,7 @@ import {
 } from '@/hooks/use-resources';
 import { createTimeframedSummaryMap } from '@/lib/analytics';
 import { getBoroughLabel, matchesBorough } from '@/lib/boroughs';
+import { formatOneDecimal } from '@/lib/formatters';
 import { distanceInMiles, roundBounds } from '@/lib/geo';
 import type {
   Borough,
@@ -80,8 +81,6 @@ const DEFAULT_FILTERS: DashboardFilterState = {
   resourceTypeId: '',
   tagId: '',
   timeframe: '30d',
-  openNowOnly: false,
-  openSoonOnly: false,
   syncListToMap: true,
   highestWait: false,
   highFailureRate: false,
@@ -111,8 +110,6 @@ function isBorough(value: string | null): value is Borough {
 function isResourceSort(value: string | null): value is ResourceListSort {
   return (
     value === 'alpha-asc' ||
-    value === 'open-now' ||
-    value === 'open-soon' ||
     value === 'wait-desc' ||
     value === 'rating-desc' ||
     value === 'rating-asc' ||
@@ -156,8 +153,6 @@ function readFiltersFromSearchParams(searchParams: ReadonlyURLSearchParams): Das
     resourceTypeId: searchParams.get('resourceTypeId') ?? '',
     tagId: searchParams.get('tagId') ?? '',
     timeframe: isTimeframeOption(timeframe) ? timeframe : DEFAULT_FILTERS.timeframe,
-    openNowOnly: readBooleanParam(searchParams, 'openNowOnly'),
-    openSoonOnly: readBooleanParam(searchParams, 'openSoonOnly'),
     syncListToMap: readBooleanParam(searchParams, 'syncListToMap', true),
     highestWait: readBooleanParam(searchParams, 'highestWait'),
     highFailureRate: readBooleanParam(searchParams, 'highFailureRate'),
@@ -207,8 +202,6 @@ function createDashboardSearchParams({
   if (filters.resourceTypeId) params.set('resourceTypeId', filters.resourceTypeId);
   if (filters.tagId) params.set('tagId', filters.tagId);
   if (filters.timeframe !== DEFAULT_FILTERS.timeframe) params.set('timeframe', filters.timeframe);
-  if (filters.openNowOnly) params.set('openNowOnly', '1');
-  if (filters.openSoonOnly) params.set('openSoonOnly', '1');
   if (!filters.syncListToMap) params.set('syncListToMap', '0');
   if (filters.highestWait) params.set('highestWait', '1');
   if (filters.highFailureRate) params.set('highFailureRate', '1');
@@ -233,16 +226,6 @@ function normalizeSearchText(value: string) {
   return value.trim().toLowerCase();
 }
 
-function isOpenSoon(resource: Resource) {
-  return resource.status.source === 'occurrences' && resource.status.opensSoon;
-}
-
-function getNextOccurrenceTimestamp(resource: Resource) {
-  if (!resource.status.nextOccurrenceStart) return Number.MAX_SAFE_INTEGER;
-  const parsed = new Date(resource.status.nextOccurrenceStart).getTime();
-  return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
-}
-
 function compareNames(left: Resource, right: Resource) {
   return left.name.localeCompare(right.name);
 }
@@ -253,20 +236,6 @@ function sortResources(
   reviewPayloadById: Map<string, ReviewPayload>,
 ) {
   return [...resources].sort((left, right) => {
-    if (sort === 'open-now') {
-      const leftOpenScore = left.status.isOpen ? 2 : left.status.opensSoon ? 1 : 0;
-      const rightOpenScore = right.status.isOpen ? 2 : right.status.opensSoon ? 1 : 0;
-      return rightOpenScore - leftOpenScore || compareNames(left, right);
-    }
-    if (sort === 'open-soon') {
-      const leftSoonScore = left.status.opensSoon ? 2 : left.status.isOpen ? 1 : 0;
-      const rightSoonScore = right.status.opensSoon ? 2 : right.status.isOpen ? 1 : 0;
-      return (
-        rightSoonScore - leftSoonScore ||
-        getNextOccurrenceTimestamp(left) - getNextOccurrenceTimestamp(right) ||
-        compareNames(left, right)
-      );
-    }
     if (sort === 'wait-desc') {
       const leftWait = reviewPayloadById.get(left.id)?.summary.averageWaitMinutes ?? Number.MIN_SAFE_INTEGER;
       const rightWait = reviewPayloadById.get(right.id)?.summary.averageWaitMinutes ?? Number.MIN_SAFE_INTEGER;
@@ -349,8 +318,6 @@ function filterResources({
     if (!matchesSelectedBorough(resource, filters.borough)) return false;
     if (filters.resourceTypeId && resource.resourceTypeId !== filters.resourceTypeId) return false;
     if (filters.tagId && !resource.tags.some((tag) => tag.id === filters.tagId)) return false;
-    if (filters.openNowOnly && !resource.status.isOpen) return false;
-    if (filters.openSoonOnly && !isOpenSoon(resource)) return false;
 
     // AI Matches
     if (filters.hasFreshProduce && !resource.hasFreshProduce) return false;
@@ -378,8 +345,6 @@ function getPaginationFilterKey(filters: DashboardFilterState) {
     resourceTypeId: filters.resourceTypeId,
     tagId: filters.tagId,
     timeframe: filters.timeframe,
-    openNowOnly: filters.openNowOnly,
-    openSoonOnly: filters.openSoonOnly,
     syncListToMap: filters.syncListToMap,
     highestWait: filters.highestWait,
     highFailureRate: filters.highFailureRate,
@@ -657,7 +622,7 @@ export function DashboardClient() {
   const canGoPrevious = filters.syncListToMap ? effectiveBoundsCursors.length > 0 : currentPageNumber > 1;
   const canGoNext = filters.syncListToMap ? Boolean(boundedResourcesQuery.data?.cursor) : currentPageNumber < resourcePages.length || resourcesQuery.hasNextPage;
   const activeBoroughLabel = filters.borough ? getBoroughLabel(filters.borough) : 'All boroughs';
-  const insightsScopeLabel = filters.syncListToMap ? 'Scope follows the current map viewport...' : 'Scope follows the currently fetched search results...';
+  const insightsScopeLabel = filters.syncListToMap ? 'Map viewport scope' : 'Fetched results scope';
 
   function replaceUrl(resourceId?: string | null, view = activeView, nextInsightsScope: InsightsScope = insightsScope) {
     startTransition(() => {
@@ -751,12 +716,12 @@ export function DashboardClient() {
                   
                   {/* --- TOP SHORTAGES BOARD --- */}
                   {topDisruptions.length > 0 && (
-                    <div className="panel-surface mb-4 border-l-4 border-l-amber-500 bg-white/40 p-4 backdrop-blur-sm shadow-sm">
+                    <div className="panel-surface mb-4 border-l-4 border-l-amber bg-white/40 p-4 backdrop-blur-sm shadow-sm">
                       <div className="mb-3 flex items-center justify-between">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate/60">
                           Operational Priority Board (Top 5 Gaps)
                         </h3>
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                        <span className="rounded-full bg-amber px-2 py-0.5 text-[10px] font-bold text-ink">
                           ACTION REQUIRED
                         </span>
                       </div>
@@ -765,7 +730,7 @@ export function DashboardClient() {
                           <div 
                             key={item.id} 
                             onClick={() => openResource(item.id)}
-                            className="flex cursor-pointer items-center justify-between rounded-xl bg-white/80 p-2.5 transition hover:bg-mist border border-transparent hover:border-amber-200"
+                            className="flex cursor-pointer items-center justify-between rounded-xl border border-transparent bg-white/80 p-2.5 transition hover:border-amber/40 hover:bg-mist/65"
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-sm font-black text-slate/20">#{idx + 1}</span>
@@ -774,11 +739,11 @@ export function DashboardClient() {
                             <div className="flex gap-4">
                               <div className="text-right">
                                 <p className="text-[10px] font-bold text-slate/40 uppercase">Wait</p>
-                                <p className="text-xs font-bold text-ink">{Math.round(item.wait)}m</p>
+                                <p className="text-xs font-bold text-ink">{formatOneDecimal(item.wait)}m</p>
                               </div>
                               <div className="text-right">
                                 <p className="text-[10px] font-bold text-slate/40 uppercase">Unmet</p>
-                                <p className="text-xs font-bold text-amber-600">{Math.round(item.unmet)}%</p>
+                                <p className="text-xs font-bold text-pine">{formatOneDecimal(item.unmet)}%</p>
                               </div>
                             </div>
                           </div>

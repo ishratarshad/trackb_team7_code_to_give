@@ -1,4 +1,5 @@
 import type { ReviewPayload, ReviewRecord, ReviewSummary } from '@/types/resources';
+import { roundToOneDecimal } from '@/lib/formatters';
 
 const STRUCTURED_REASONS = [
   'Pantry closed',
@@ -15,6 +16,14 @@ function average(values: number[]) {
   }
 
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function roundNullable(value: number | null) {
+  return typeof value === 'number' ? roundToOneDecimal(value) : null;
+}
+
+function toPercentage(numerator: number, denominator: number) {
+  return denominator ? roundToOneDecimal((numerator / denominator) * 100) : null;
 }
 
 function seedFromString(value: string) {
@@ -67,8 +76,8 @@ export function aggregateReviews(reviews: ReviewRecord[]): ReviewSummary {
 
   return {
     totalReviews: sortedReviews.length,
-    averageRating: average(ratings),
-    averageWaitMinutes: average(waitTimes),
+    averageRating: roundNullable(average(ratings)),
+    averageWaitMinutes: roundNullable(average(waitTimes)),
     waitTimeTrend,
     waitBuckets: [
       { label: '0-15 min', count: waitTimes.filter((time) => time <= 15).length },
@@ -76,16 +85,12 @@ export function aggregateReviews(reviews: ReviewRecord[]): ReviewSummary {
       { label: '30-60 min', count: waitTimes.filter((time) => time > 30 && time <= 60).length },
       { label: '60+ min', count: waitTimes.filter((time) => time > 60).length },
     ],
-    attendedPercentage: sortedReviews.length ? (attendedCount / sortedReviews.length) * 100 : null,
-    didNotReceiveHelpPercentage: sortedReviews.length
-      ? (notAttendedCount / sortedReviews.length) * 100
-      : null,
+    attendedPercentage: toPercentage(attendedCount, sortedReviews.length),
+    didNotReceiveHelpPercentage: toPercentage(notAttendedCount, sortedReviews.length),
     didNotAttendReasons: Array.from(reasonMap.entries())
       .map(([label, count]) => ({ label, count }))
       .sort((left, right) => right.count - left.count),
-    inaccuratePercentage: answeredAccuracy.length
-      ? (inaccurateCount / answeredAccuracy.length) * 100
-      : null,
+    inaccuratePercentage: toPercentage(inaccurateCount, answeredAccuracy.length),
   };
 }
 
@@ -116,6 +121,7 @@ export function createGeneratedReviews(resourceId: string): ReviewPayload {
   });
 
   return {
+    isMockData: true,
     reviews,
     summary: aggregateReviews(reviews),
   };
