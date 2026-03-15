@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { submitReview, getSummary } from '@/lib/feedback-api';
+import { formatOneDecimal } from '@/lib/formatters';
 import type { Resource } from '@/types/resources';
 
 type FeedbackResource = { id: string; name: string };
@@ -302,11 +303,11 @@ function FeedbackForm({
           Was information accurate?
         </span>
         <div className="flex gap-2">
-          {[
+          {([
             [true, 'Yes'],
             [false, 'No'],
             [null, '—'],
-          ].map(([val, label]) => (
+          ] as const).map(([val, label]) => (
             <button
               key={label}
               type="button"
@@ -379,8 +380,6 @@ function FeedbackSummaryCard() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
     getSummary()
       .then((data) => {
         if (!cancelled) setSummary(data);
@@ -433,20 +432,20 @@ function FeedbackSummaryCard() {
         </div>
         <div className="rounded-xl bg-mist/50 p-3 text-center">
           <p className="text-2xl font-bold text-pine">
-            {average_wait_time != null ? average_wait_time.toFixed(0) : '—'}
+            {average_wait_time != null ? formatOneDecimal(average_wait_time) : '—'}
           </p>
           <p className="text-xs font-semibold text-slate/70">Avg wait (min)</p>
         </div>
         <div className="rounded-xl bg-mist/50 p-3 text-center">
           <p className="text-2xl font-bold text-pine">
-            {attended_rate != null ? `${(attended_rate * 100).toFixed(0)}%` : '—'}
+            {attended_rate != null ? `${formatOneDecimal(attended_rate * 100)}%` : '—'}
           </p>
           <p className="text-xs font-semibold text-slate/70">Attended rate</p>
         </div>
         <div className="col-span-2 rounded-xl bg-mist/50 p-3 text-center">
           <p className="text-2xl font-bold text-pine">
             {inaccurate_information_rate != null
-              ? `${(inaccurate_information_rate * 100).toFixed(0)}%`
+              ? `${formatOneDecimal(inaccurate_information_rate * 100)}%`
               : '—'}
           </p>
           <p className="text-xs font-semibold text-slate/70">Inaccurate info rate</p>

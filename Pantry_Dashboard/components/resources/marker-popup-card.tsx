@@ -33,7 +33,7 @@ export function MarkerPopupCard({
           </span>
         ) : null}
         {typeof averageWait === 'number' && averageWait > 0 ? (
-          <span className="status-pill bg-amber/10 text-amber">{formatWaitTime(averageWait)}</span>
+          <span className="status-pill bg-amber/20 text-ink">{formatWaitTime(averageWait)}</span>
         ) : null}
         {resource.reviewCount > 0 ? (
           <span className="status-pill bg-white text-slate">{resource.reviewCount} reviews</span>

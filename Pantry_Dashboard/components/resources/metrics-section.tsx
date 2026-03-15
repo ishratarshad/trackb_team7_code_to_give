@@ -42,6 +42,11 @@ export function MetricsSection({
               No structured feedback records were available for {timeframeLabel.toLowerCase()}.
             </p>
           </div>
+          {reviewPayload.isMockData ? (
+            <div className="rounded-full border border-pine/25 bg-pine px-3.5 py-1.5 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-white shadow-soft">
+              Mock data
+            </div>
+          ) : null}
         </div>
       </section>
     );
@@ -60,8 +65,15 @@ export function MetricsSection({
           </p>
         </div>
 
-        <div className="rounded-full bg-mist px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate">
-          {summary.totalReviews} records
+        <div className="flex flex-wrap items-center gap-2">
+          {reviewPayload.isMockData ? (
+            <div className="rounded-full border border-pine/25 bg-pine px-3.5 py-1.5 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-white shadow-soft">
+              Mock data
+            </div>
+          ) : null}
+          <div className="rounded-full border border-amber/60 bg-amber px-3.5 py-1.5 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-ink shadow-soft">
+            {summary.totalReviews} records
+          </div>
         </div>
       </div>
 

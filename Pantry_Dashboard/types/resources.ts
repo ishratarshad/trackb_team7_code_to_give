@@ -101,8 +101,6 @@ export type ResourceMarker = {
 
 export type ResourceListSort =
   | 'alpha-asc'
-  | 'open-now'
-  | 'open-soon'
   | 'wait-desc'
   | 'rating-desc'
   | 'rating-asc'
@@ -164,6 +162,7 @@ export type ReviewSummary = {
 };
 
 export type ReviewPayload = {
+  isMockData?: boolean;
   reviews: ReviewRecord[];
   summary: ReviewSummary;
 };
@@ -245,8 +244,6 @@ export type DashboardFilterState = {
   resourceTypeId: string;
   tagId: string;
   timeframe: TimeframeOption;
-  openNowOnly: boolean;
-  openSoonOnly: boolean;
   syncListToMap: boolean;
   highestWait: boolean;
   highFailureRate: boolean;

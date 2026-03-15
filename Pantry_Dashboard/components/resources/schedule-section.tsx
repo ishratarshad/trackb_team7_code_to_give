@@ -36,8 +36,8 @@ export function ScheduleSection({ resource }: { resource: Resource }) {
           </div>
           <div className="mt-3 space-y-2 text-sm text-slate">
             {resource.weeklySchedule.length ? (
-              resource.weeklySchedule.map((entry) => (
-                <div key={entry} className="rounded-2xl bg-white/70 px-3 py-2">
+              resource.weeklySchedule.map((entry, index) => (
+                <div key={`${entry}-${index}`} className="rounded-2xl bg-white/70 px-3 py-2">
                   {entry}
                 </div>
               ))

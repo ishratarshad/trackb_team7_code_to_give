@@ -1,7 +1,7 @@
 import { format, startOfMonth, startOfWeek, subDays, subMonths } from 'date-fns';
 
 import { aggregateReviews } from '@/lib/mock-review-generator';
-import { titleCase } from '@/lib/formatters';
+import { roundToOneDecimal, titleCase } from '@/lib/formatters';
 import type {
   DashboardInsights,
   Resource,
@@ -59,6 +59,10 @@ function average(values: number[]) {
   }
 
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function roundNullable(value: number | null) {
+  return typeof value === 'number' ? roundToOneDecimal(value) : null;
 }
 
 function toSafeDate(value: string) {
@@ -120,6 +124,7 @@ export function applyTimeframeToPayload(
   const reviews = filterReviewsByTimeframe(payload.reviews, timeframe);
 
   return {
+    isMockData: payload.isMockData,
     reviews,
     summary: reviews.length ? aggregateReviews(reviews) : EMPTY_SUMMARY,
   };
@@ -210,10 +215,10 @@ export function buildTimeline(
         key,
         label: labels.get(key) ?? key,
         reviewCount: bucketReviews.length,
-        averageWaitMinutes: average(waitValues),
-        averageRating: average(ratingValues),
+        averageWaitMinutes: roundNullable(average(waitValues)),
+        averageRating: roundNullable(average(ratingValues)),
         helpSuccessRate: answeredHelp.length
-          ? (helpSuccessCount / answeredHelp.length) * 100
+          ? roundToOneDecimal((helpSuccessCount / answeredHelp.length) * 100)
           : null,
       } satisfies TrendPoint;
     });

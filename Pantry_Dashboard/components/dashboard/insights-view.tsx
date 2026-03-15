@@ -8,9 +8,9 @@ import {
   Download,
   PieChart as PieIcon,
   TrendingUp,
-  Loader2
+  Loader2,
 } from 'lucide-react';
-import { useMemo, useState, useCallback, type ReactNode } from 'react';
+import { useCallback, useId, useMemo, useState, type ReactNode } from 'react';
 
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingCard } from '@/components/ui/loading-card';
@@ -52,15 +52,15 @@ export function InsightsView({
   const supplyBreakdown = useMemo(() => {
     const total = resources.length;
     if (total === 0) return [];
-    const getPct = (key: keyof Resource) => (resources.filter(r => !!r[key]).length / total) * 100;
+    const getPct = (key: keyof Resource) => (resources.filter((resource) => !!resource[key]).length / total) * 100;
 
     return [
-      { label: 'Fresh Produce', value: getPct('hasFreshProduce'), color: 'bg-emerald-500' },
-      { label: 'Protein/Meat', value: getPct('hasMeat'), color: 'bg-rose-500' },
-      { label: 'Halal Options', value: getPct('hasHalal'), color: 'bg-amber-500' },
-      { label: 'Kosher Options', value: getPct('hasKosher'), color: 'bg-blue-500' },
-      { label: 'Dairy Products', value: getPct('hasDairy'), color: 'bg-sky-500' },
-      { label: 'Grains/Staples', value: getPct('hasGrains'), color: 'bg-orange-500' },
+      { label: 'Fresh Produce', value: getPct('hasFreshProduce'), color: '#ffcc10' },
+      { label: 'Protein/Meat', value: getPct('hasMeat'), color: '#704DBD' },
+      { label: 'Halal Options', value: getPct('hasHalal'), color: '#8f76d0' },
+      { label: 'Kosher Options', value: getPct('hasKosher'), color: '#ffd95a' },
+      { label: 'Dairy Products', value: getPct('hasDairy'), color: '#5b458f' },
+      { label: 'Grains/Staples', value: getPct('hasGrains'), color: '#b59ae8' },
     ];
   }, [resources]);
 
@@ -127,10 +127,30 @@ export function InsightsView({
 
   if (!resources.length) {
     return (
-      <EmptyState
-        title={insightsScope === 'bookmarked' ? 'No bookmarks match filters' : 'No resources in scope'}
-        description="Try widening the borough or other filters to see trends."
-      />
+      <div className="grid gap-4">
+        <div className="flex justify-end">
+          <div className="rounded-full border border-line/80 bg-white/85 p-1">
+            <button
+              type="button"
+              onClick={() => onInsightsScopeChange('all')}
+              className={getScopeButtonClass(insightsScope === 'all')}
+            >
+              All filtered
+            </button>
+            <button
+              type="button"
+              onClick={() => onInsightsScopeChange('bookmarked')}
+              className={getScopeButtonClass(insightsScope === 'bookmarked')}
+            >
+              Bookmarked
+            </button>
+          </div>
+        </div>
+        <EmptyState
+          title={insightsScope === 'bookmarked' ? 'No bookmarks match filters' : 'No resources in scope'}
+          description="Try widening the borough or other filters to see trends."
+        />
+      </div>
     );
   }
 
@@ -146,13 +166,16 @@ export function InsightsView({
               Summaries for {timeframeLabel.toLowerCase()} across {resources.length} resources.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate">
+              <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink">
                 Borough: {activeBoroughLabel}
+              </span>
+              <span className="rounded-full bg-pine/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-pine">
+                {scopeLabel}
               </span>
               <button
                 onClick={handleExportPDF}
                 disabled={isExporting}
-                className="print:hidden flex items-center gap-2 rounded-full bg-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white hover:bg-pine transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="print:hidden flex items-center gap-2 rounded-full bg-pine px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isExporting ? (
                   <>
@@ -172,20 +195,14 @@ export function InsightsView({
               <button
                 type="button"
                 onClick={() => onInsightsScopeChange('all')}
-                className={cn(
-                  'rounded-full px-4 py-2 text-sm font-semibold transition',
-                  insightsScope === 'all' ? 'bg-pine text-white' : 'text-slate',
-                )}
+                className={getScopeButtonClass(insightsScope === 'all')}
               >
                 All filtered
               </button>
               <button
                 type="button"
                 onClick={() => onInsightsScopeChange('bookmarked')}
-                className={cn(
-                  'rounded-full px-4 py-2 text-sm font-semibold transition',
-                  insightsScope === 'bookmarked' ? 'bg-pine text-white' : 'text-slate',
-                )}
+                className={getScopeButtonClass(insightsScope === 'bookmarked')}
               >
                 Bookmarked
               </button>
@@ -215,20 +232,23 @@ export function InsightsView({
                   <span>{item.label}</span>
                   <span>{item.value.toFixed(1)}%</span>
                 </div>
-                <div className="h-3 w-full bg-mist rounded-full overflow-hidden">
-                  <div className={cn("h-full transition-all duration-1000", item.color)} style={{ width: `${item.value}%` }} />
+                <div className="h-3 w-full overflow-hidden rounded-full bg-line/45">
+                  <div
+                    className="h-full transition-all duration-1000"
+                    style={{ width: `${item.value}%`, backgroundColor: item.color }}
+                  />
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="panel-surface p-5 border-dashed border-2 border-pine/30 bg-mist/20">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="panel-surface border-2 border-dashed border-amber/50 bg-gradient-to-br from-mist/40 via-white/90 to-pine/5 p-5">
+          <div className="mb-2 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-pine" />
             <h3 className="text-xl font-bold text-ink">Neighborhood Health Indicators</h3>
           </div>
-          <p className="text-xs text-slate mb-6">Layered Data: NYC Health Atlas & Internal Metrics</p>
+          <p className="mb-6 text-xs text-slate">Layered Data: NYC Health Atlas & Internal Metrics</p>
           <div className="grid grid-cols-2 gap-4">
             <HealthStat label="Vulnerability" value="7.8/10" status="High Need" />
             <HealthStat label="Transit Access" value="Moderate" status="Gaps Present" />
@@ -258,14 +278,20 @@ export function InsightsView({
                     <span>{signal.count}</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-line/70">
-                    <div className={cn('h-full rounded-full', index % 3 === 0 ? 'bg-pine' : index % 3 === 1 ? 'bg-amber' : 'bg-coral')} 
-                      style={{ width: `${Math.min(100, Math.max(8, (signal.count / Math.max(insights.structuredSignals[0]?.count ?? 1, 1)) * 100))}%` }} 
+                    <div
+                      className={cn(
+                        'h-full rounded-full',
+                        index % 3 === 0 ? 'bg-pine' : index % 3 === 1 ? 'bg-amber' : 'bg-moss',
+                      )}
+                      style={{ width: `${Math.min(100, Math.max(8, (signal.count / Math.max(insights.structuredSignals[0]?.count ?? 1, 1)) * 100))}%` }}
                     />
                   </div>
                 </div>
               ))}
             </div>
-          ) : <p className="mt-5 text-sm text-slate">No barriers reported.</p>}
+          ) : (
+            <p className="mt-5 text-sm text-slate">No barriers reported.</p>
+          )}
         </div>
 
         <div className="panel-surface p-5">
@@ -273,16 +299,27 @@ export function InsightsView({
           <div className="mt-5 overflow-hidden rounded-[24px] border border-line/80">
             <div className="max-h-[420px] overflow-y-auto divide-y divide-line/70 bg-white/85">
               {insights.serviceDisruptions.slice(0, 5).map((alert) => (
-                <div key={alert.resourceId} className="flex items-center justify-between p-4 hover:bg-mist/30 cursor-pointer" onClick={() => onOpenResource(alert.resourceId)}>
+                <div
+                  key={alert.resourceId}
+                  className="flex cursor-pointer items-center justify-between p-4 transition hover:bg-mist/30"
+                  onClick={() => onOpenResource(alert.resourceId)}
+                >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-ink">{alert.resourceName}</p>
-                    <div className="flex gap-2 mt-1">
-                      {alert.topSignals.slice(0, 2).map(s => <span key={s} className="text-[9px] bg-coral/10 text-coral px-2 py-0.5 rounded-full font-bold uppercase">{s}</span>)}
+                    <div className="mt-1 flex gap-2">
+                      {alert.topSignals.slice(0, 2).map((signal) => (
+                        <span
+                          key={signal}
+                          className="rounded-full bg-amber/25 px-2 py-0.5 text-[9px] font-bold uppercase text-ink"
+                        >
+                          {signal}
+                        </span>
+                      ))}
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-slate uppercase">Score</p>
-                    <p className="text-lg font-black text-rose-500">{alert.disruptionScore.toFixed(1)}</p>
+                    <p className="text-lg font-black text-pine">{alert.disruptionScore.toFixed(1)}</p>
                   </div>
                 </div>
               ))}
@@ -298,10 +335,10 @@ export function InsightsView({
 
 function HealthStat({ label, value, status }: { label: string, value: string, status: string }) {
   return (
-    <div className="p-3 bg-white rounded-2xl border border-line/50">
+    <div className="rounded-2xl border border-line/50 bg-white/95 p-3 shadow-soft">
       <p className="text-[10px] font-black text-slate/60 uppercase">{label}</p>
       <p className="text-xl font-black text-ink">{value}</p>
-      <p className="text-[9px] font-bold text-pine uppercase mt-1">{status}</p>
+      <p className="mt-1 text-[9px] font-bold uppercase text-pine">{status}</p>
     </div>
   );
 }
@@ -326,31 +363,109 @@ function TrendCard({ title, metric, data, valueSelector, valueFormatter }: { tit
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">{metric}</p>
       <h3 className="mt-2 text-2xl text-ink">{title}</h3>
       <p className="mt-3 text-2xl text-ink">{valueFormatter(latestValue)}</p>
-      <div className="mt-4"><SparklineChart data={values} /></div>
+      <div className="mt-4"><SparklineChart data={values} valueFormatter={valueFormatter} /></div>
     </div>
   );
 }
 
-function SparklineChart({ data }: { data: Array<number | null> }) {
+function SparklineChart({ data, valueFormatter }: { data: Array<number | null>; valueFormatter?: (v: number | null) => string }) {
+  const gradientId = useId();
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const numericValues = data.filter((v): v is number => typeof v === 'number');
-  if (!numericValues.length) return <div className="h-28 bg-mist/60 rounded-[22px]" />;
+  if (!numericValues.length) return <div className="h-28 bg-mist/60 rounded-[22px] flex items-center justify-center text-slate text-sm">No data available</div>;
   const min = Math.min(...numericValues);
   const max = Math.max(...numericValues);
   const range = Math.max(max - min, 1);
   const width = 360;
   const height = 112;
-  const points = data.map((v, i) => {
+  const padding = 12;
+
+  const pointData = data.map((v, i) => {
     if (typeof v !== 'number') return null;
-    const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width;
-    const y = height - ((v - min) / range) * (height - 18) - 9;
-    return `${x},${y}`;
-  }).filter(Boolean);
+    const x = data.length === 1 ? width / 2 : padding + (i / (data.length - 1)) * (width - padding * 2);
+    const y = height - ((v - min) / range) * (height - 30) - 15;
+    return { x, y, value: v, index: i };
+  }).filter((p): p is { x: number; y: number; value: number; index: number } => p !== null);
+
+  const polylinePoints = pointData.map(p => `${p.x},${p.y}`).join(' ');
+  const hoveredPoint = hoveredIndex !== null ? pointData.find(p => p.index === hoveredIndex) : null;
+  const formatter = valueFormatter ?? ((v: number | null) => v?.toFixed(1) ?? 'N/A');
 
   return (
-    <div className="overflow-hidden rounded-[22px] bg-mist/60 p-3">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-28 w-full">
-        <polyline fill="none" stroke="#9b6813" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" points={points.join(' ')} />
+    <div className="overflow-hidden rounded-[22px] bg-mist/60 p-3 relative">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="h-28 w-full cursor-crosshair"
+        onMouseLeave={() => setHoveredIndex(null)}
+      >
+        {/* Area fill under line */}
+        <path
+          d={`M ${pointData[0]?.x ?? 0},${height} ${polylinePoints} L ${pointData[pointData.length - 1]?.x ?? width},${height} Z`}
+          fill={`url(#${gradientId})`}
+          opacity="0.3"
+        />
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#704DBD" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#ffcc10" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+
+        {/* Main line */}
+        <polyline
+          fill="none"
+          stroke="#704DBD"
+          strokeWidth="3"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          points={polylinePoints}
+        />
+
+        {/* Interactive hit areas and points */}
+        {pointData.map((point) => (
+          <g key={point.index}>
+            {/* Larger invisible hit area */}
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={16}
+              fill="transparent"
+              onMouseEnter={() => setHoveredIndex(point.index)}
+              className="cursor-pointer"
+            />
+            {/* Visible point */}
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={hoveredIndex === point.index ? 6 : 4}
+              fill={hoveredIndex === point.index ? '#ffcc10' : '#704DBD'}
+              stroke="white"
+              strokeWidth={hoveredIndex === point.index ? 3 : 2}
+              className="transition-all duration-150"
+            />
+          </g>
+        ))}
       </svg>
+
+      {/* Tooltip */}
+      {hoveredPoint && (
+        <div
+          className="absolute bg-ink text-white px-2 py-1 rounded-lg text-xs font-semibold shadow-lg pointer-events-none transform -translate-x-1/2"
+          style={{
+            left: `${(hoveredPoint.x / width) * 100}%`,
+            top: `${(hoveredPoint.y / height) * 100 - 15}%`,
+          }}
+        >
+          {formatter(hoveredPoint.value)}
+        </div>
+      )}
     </div>
+  );
+}
+
+function getScopeButtonClass(active: boolean) {
+  return cn(
+    'rounded-full px-4 py-2 text-sm font-semibold transition',
+    active ? 'bg-pine text-white shadow-soft' : 'text-slate hover:text-pine',
   );
 }
