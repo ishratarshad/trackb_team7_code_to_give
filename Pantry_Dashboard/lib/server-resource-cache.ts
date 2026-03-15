@@ -4,6 +4,8 @@ import type { RawResource } from '@/types/api';
 import type { Resource } from '@/types/resources';
 
 const RESOURCE_CACHE_TTL_MS = 1000 * 60 * 5;
+const BATCH_SIZE = 10;
+const BATCH_DELAY_MS = 50;
 
 const resourceCache = new Map<
   string,
@@ -13,7 +15,11 @@ const resourceCache = new Map<
   }
 >();
 
-export async function getCachedResource(resourceId: string) {
+async function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function getCachedResource(resourceId: string): Promise<Resource | null> {
   const now = Date.now();
   const cached = resourceCache.get(resourceId);
 
@@ -21,17 +27,72 @@ export async function getCachedResource(resourceId: string) {
     return cached.resource;
   }
 
-  const rawResource = await fetchUpstreamJson<RawResource>(`/api/resources/${resourceId}`);
-  const resource = normalizeResource(rawResource);
+  try {
+    const rawResource = await fetchUpstreamJson<RawResource>(`/api/resources/${resourceId}`);
+    const resource = normalizeResource(rawResource);
 
-  resourceCache.set(resourceId, {
-    expiresAt: now + RESOURCE_CACHE_TTL_MS,
-    resource,
-  });
+    resourceCache.set(resourceId, {
+      expiresAt: now + RESOURCE_CACHE_TTL_MS,
+      resource,
+    });
 
-  return resource;
+    return resource;
+  } catch {
+    return null;
+  }
 }
 
-export async function getCachedResources(resourceIds: string[]) {
-  return Promise.all(resourceIds.map((resourceId) => getCachedResource(resourceId)));
+export async function getCachedResources(resourceIds: string[]): Promise<Resource[]> {
+  const results: (Resource | null)[] = [];
+  const now = Date.now();
+
+  // Separate cached and uncached IDs
+  const uncachedIds: { index: number; id: string }[] = [];
+
+  for (let i = 0; i < resourceIds.length; i++) {
+    const id = resourceIds[i];
+    const cached = resourceCache.get(id);
+
+    if (cached && cached.expiresAt > now) {
+      results[i] = cached.resource;
+    } else {
+      results[i] = null;
+      uncachedIds.push({ index: i, id });
+    }
+  }
+
+  // Fetch uncached resources in batches to avoid overwhelming the API
+  for (let i = 0; i < uncachedIds.length; i += BATCH_SIZE) {
+    const batch = uncachedIds.slice(i, i + BATCH_SIZE);
+
+    const batchResults = await Promise.all(
+      batch.map(async ({ id }) => {
+        try {
+          const rawResource = await fetchUpstreamJson<RawResource>(`/api/resources/${id}`);
+          const resource = normalizeResource(rawResource);
+
+          resourceCache.set(id, {
+            expiresAt: Date.now() + RESOURCE_CACHE_TTL_MS,
+            resource,
+          });
+
+          return resource;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    // Store batch results
+    for (let j = 0; j < batch.length; j++) {
+      results[batch[j].index] = batchResults[j];
+    }
+
+    // Add delay between batches to avoid rate limiting
+    if (i + BATCH_SIZE < uncachedIds.length) {
+      await delay(BATCH_DELAY_MS);
+    }
+  }
+
+  return results.filter((r): r is Resource => r !== null);
 }

@@ -51,17 +51,23 @@ export async function GET(request: Request) {
     }
 
     const resources = await getCachedResources(normalizedMarkers.map((marker) => marker.id));
-    const filteredMarkers = normalizedMarkers.filter((marker, index) =>
-      matchesBorough(resources[index], borough),
+
+    // Build a Set of resource IDs that match the borough for fast lookup
+    const matchingIds = new Set(
+      resources.filter((resource) => matchesBorough(resource, borough)).map((r) => r.id)
     );
+
+    const filteredMarkers = normalizedMarkers.filter((marker) => matchingIds.has(marker.id));
 
     return NextResponse.json({
       markers: filteredMarkers,
     });
   } catch (error) {
+    console.error('Error fetching markers:', error);
     return NextResponse.json(
       {
         message: error instanceof Error ? error.message : 'Failed to fetch markers',
+        markers: [],
       },
       { status: 500 },
     );

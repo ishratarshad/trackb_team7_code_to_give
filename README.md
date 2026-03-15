@@ -2,6 +2,8 @@
 
 LemonLens is an operational analytics platform built for the Lemontree nonprofit as part of the Morgan Stanley Code to Give Hackathon.
 
+Built with the **same tech stack as Lemontree** (Next.js, React, TypeScript, Vercel), LemonLens is designed for seamless integration into the existing platform.
+
 The system transforms community feedback, pantry reviews, and food inventory photos into structured operational insights that help food banks, donors, and partners make faster and more informed decisions about where food resources are needed most.
 
 Instead of manually reviewing scattered feedback and images, LemonLens automatically categorizes food supply data, analyzes service signals such as wait times and unmet demand, and surfaces priority insights through an interactive dashboard.
@@ -10,15 +12,17 @@ Instead of manually reviewing scattered feedback and images, LemonLens automatic
 
 # Problem
 
-Lemontree collects valuable community feedback about food access across New York City, including pantry reviews, wait times, and photos of available food resources.
+Lemontree has rich data on 1,400+ food pantries, but partners like the NYC Mayor's Office can't easily explore it. Questions like "Does the food in Jackson Heights match South Asian dietary preferences?" take days to answer manually.
 
-However, this information is difficult for partners to organize, interpret, and act on in real time.
+Lemontree collects valuable community feedback about food access across New York City, including pantry reviews, wait times, and photos of available food resources. However, this information is difficult for partners to organize, interpret, and act on in real time.
 
 Current challenges include:
 
 - Pantry feedback and photos are unstructured and require manual review
+- No way to filter pantries by dietary needs (Halal, Kosher, culturally relevant foods)
 - Operational issues such as shortages or long wait times are difficult to detect quickly
 - Data is difficult to aggregate across neighborhoods or food categories
+- Demographic context (poverty rates, SNAP enrollment) isn't connected to pantry data
 - Partners lack a simple way to identify which pantries require urgent support
 
 As a result, food banks and donors often rely on incomplete or delayed information when deciding where to send resources.
@@ -63,17 +67,18 @@ This creates a real-time signal about pantry operations and available resources.
 
 ## 2. AI Image Processing
 
-Pantry photos are analyzed using the Claude Vision API.
+The system demonstrates an AI-powered classification pipeline using Claude Vision API architecture.
 
-The system extracts structured food tags such as:
+Pantry photos are analyzed and structured food tags are extracted:
 
 - Produce
 - Protein
 - Dairy
 - Grains
 - Canned goods
+- Halal / Kosher indicators
 
-This replaces hours of manual photo review and converts visual data into structured inventory signals.
+This replaces hours of manual photo review and converts visual data into structured inventory signals that power the dietary preference filters.
 
 ---
 
@@ -111,15 +116,16 @@ Partners interact with the data through a web dashboard that provides:
    Locations are clustered dynamically and update based on viewport and filters.
    
    ### Filtering and Search
-   
+
    Users can filter resources by:
-   
+
    - Borough
-   - Food category
+   - Food category (Fresh Produce, Dairy, Meat, Grains, Canned)
+   - Dietary preferences (Halal, Kosher)
    - Service type
    - Operational priority
-   
-   This enables targeted exploration of supply gaps and service demand.
+
+   This enables targeted exploration of supply gaps and service demand, including finding pantries that match cultural dietary needs.
    
    ### Priority Board
    
@@ -142,7 +148,11 @@ Partners interact with the data through a web dashboard that provides:
 
 # Key Features
 
-## 1.) AI-Based Inventory Detection
+## 1.) Dietary Preference Filtering
+
+Filter pantries by food availability including Fresh Produce, Dairy, Meat, Grains, Canned Goods, Halal, and Kosher options. Color-coded tags on each pantry card show what's available at a glance.
+
+## 2.) AI-Based Inventory Detection
 
 Automatically detects food categories from pantry photos using computer vision.
 
@@ -162,6 +172,10 @@ Dynamic charts showing distribution of food categories across the city.
 
 Aggregates user feedback including wait times, service success, listing accuracy, and unmet demand signals to identify recurring operational issues.
 
+## 6.) Demographic Overlays
+
+Visualize food access alongside real Census (ACS) and USDA data including poverty rates, SNAP enrollment, food desert indicators, and vulnerable population density.
+
 ---
 
 # Impact
@@ -178,11 +192,10 @@ This helps improve service reliability, reduce shortages, and strengthen food ac
 # Future Improvements
 
 Potential extensions of the platform include:
-
-- Integration with public datasets such as demographic and health indicators
 - Predictive models for food demand forecasting
 - Automated alerting for emerging shortages
-- Expanded analytics for nonprofit partners and city agencies
+- Mobile-optimized volunteer check-in flow
+- Integration with donor inventory systems
 
 ---
 

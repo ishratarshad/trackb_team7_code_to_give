@@ -93,32 +93,13 @@ export function createEthnicityPieData(ethnicity_pct: EthnicityData | null | und
 
 /**
  * Find nearest tract to coordinates based on NYC borough
+ * Returns aggregated borough-level data for accuracy
  */
 export function getNearestTract(lat: number, lng: number): TractData | null {
-  // NYC bounding box check
-  if (lat >= 40.4 && lat <= 41.0 && lng >= -74.3 && lng <= -73.6) {
-    let countyCode: string;
+  const countyCode = getCountyForCoordinates(lat, lng);
+  if (!countyCode) return null;
 
-    if (lat > 40.8) {
-      countyCode = '36005'; // Bronx
-    } else if (lng < -73.95 && lat > 40.7) {
-      countyCode = '36061'; // Manhattan
-    } else if (lng > -73.85) {
-      countyCode = '36081'; // Queens
-    } else if (lat < 40.65) {
-      countyCode = '36085'; // Staten Island
-    } else {
-      countyCode = '36047'; // Brooklyn
-    }
-
-    // Find a tract with actual population data (skip empty tracts like parks)
-    const tract = Object.values(tracts).find(
-      (t) => t.geoid.startsWith(countyCode) && t.population && t.population.total > 0
-    );
-    return tract ?? null;
-  }
-
-  return null;
+  return getAggregatedCountyDemographics(countyCode);
 }
 
 /**
@@ -147,29 +128,96 @@ function getCountyFromZipcode(zipCode: string): string | null {
 }
 
 /**
+ * Get aggregated demographics for a borough/county
+ * Returns averaged data across all tracts in the county
+ */
+function getAggregatedCountyDemographics(countyCode: string): TractData | null {
+  const countyTracts = Object.values(tracts).filter(
+    (t) => t.geoid.startsWith(countyCode) && t.population && t.population.total > 0
+  );
+
+  if (countyTracts.length === 0) return null;
+
+  // Calculate population-weighted averages
+  let totalPop = 0;
+  let totalWhite = 0;
+  let totalBlack = 0;
+  let totalAsian = 0;
+  let totalHispanic = 0;
+  let totalPovertyWeighted = 0;
+  let totalSnapWeighted = 0;
+  let foodDesertCount = 0;
+
+  for (const t of countyTracts) {
+    const pop = t.population?.total || 0;
+    totalPop += pop;
+    totalWhite += t.population?.white || 0;
+    totalBlack += t.population?.black || 0;
+    totalAsian += t.population?.asian || 0;
+    totalHispanic += t.population?.hispanic || 0;
+    totalPovertyWeighted += (t.poverty?.rate_pct || 0) * pop;
+    totalSnapWeighted += (t.snap?.rate_pct ?? t.snap?.households_pct ?? 0) * pop;
+    if (t.food_access?.is_food_desert) foodDesertCount++;
+  }
+
+  const avgPoverty = totalPop > 0 ? totalPovertyWeighted / totalPop : 0;
+  const avgSnap = totalPop > 0 ? totalSnapWeighted / totalPop : 0;
+
+  return {
+    geoid: countyCode,
+    name: `Aggregated ${countyCode}`,
+    population: {
+      total: totalPop,
+      white: totalWhite,
+      black: totalBlack,
+      asian: totalAsian,
+      hispanic: totalHispanic,
+    },
+    ethnicity_pct: totalPop > 0 ? {
+      white: Math.round((totalWhite / totalPop) * 1000) / 10,
+      black: Math.round((totalBlack / totalPop) * 1000) / 10,
+      asian: Math.round((totalAsian / totalPop) * 1000) / 10,
+      hispanic: Math.round((totalHispanic / totalPop) * 1000) / 10,
+    } : undefined,
+    poverty: {
+      rate_pct: Math.round(avgPoverty * 10) / 10,
+    },
+    snap: {
+      rate_pct: Math.round(avgSnap * 10) / 10,
+    },
+    food_access: {
+      is_food_desert: foodDesertCount > countyTracts.length * 0.3, // >30% tracts are food deserts
+      low_income_tract: avgPoverty > 20,
+    },
+  };
+}
+
+/**
  * Get demographics data for a resource based on zipcode (preferred) or coordinates
+ * Returns borough-level aggregated data for accuracy
  */
 export function getDemographicsForResource(
   zipCode: string | null,
   coordinates: { latitude: number; longitude: number } | null,
 ): { tract: TractData | null; pieData: PieDataItem[] } {
-  let tract: TractData | null = null;
+  let countyCode: string | null = null;
 
   // Try zipcode first
   if (zipCode) {
-    const countyCode = getCountyFromZipcode(zipCode);
-    if (countyCode) {
-      tract = Object.values(tracts).find(
-        (t) => t.geoid.startsWith(countyCode) && t.population && t.population.total > 0
-      ) ?? null;
-    }
+    countyCode = getCountyFromZipcode(zipCode);
   }
 
   // Fall back to coordinates
-  if (!tract && coordinates) {
-    tract = getNearestTract(coordinates.latitude, coordinates.longitude);
+  if (!countyCode && coordinates) {
+    countyCode = getCountyForCoordinates(coordinates.latitude, coordinates.longitude);
   }
 
+  if (!countyCode) {
+    return { tract: null, pieData: [] };
+  }
+
+  // Get aggregated borough-level demographics
+  const tract = getAggregatedCountyDemographics(countyCode);
   const pieData = tract ? createEthnicityPieData(tract.ethnicity_pct) : [];
   return { tract, pieData };
 }
