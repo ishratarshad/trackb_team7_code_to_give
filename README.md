@@ -1,7 +1,5 @@
 # LemonLens
 
-Live Demo: https://trackbteam7codetogive.vercel.app/
-
 LemonLens is an operational analytics platform built for the Lemontree nonprofit as part of the Morgan Stanley Code to Give Hackathon.
 
 Built with the **same tech stack as Lemontree** (Next.js, React, TypeScript, Vercel), LemonLens is designed for seamless integration into the existing platform.
@@ -9,6 +7,9 @@ Built with the **same tech stack as Lemontree** (Next.js, React, TypeScript, Ver
 The system transforms community feedback, pantry reviews, and food inventory photos into structured operational insights that help food banks, donors, and partners make faster and more informed decisions about where food resources are needed most.
 
 Instead of manually reviewing scattered feedback and images, LemonLens automatically categorizes food supply data, analyzes service signals such as wait times and unmet demand, and surfaces priority insights through an interactive dashboard.
+
+# Video:  
+https://youtu.be/4kvC4jmpLTg
 
 ---
 
