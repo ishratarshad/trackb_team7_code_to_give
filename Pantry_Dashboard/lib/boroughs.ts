@@ -1,4 +1,4 @@
-import type { Borough, Resource } from '@/types/resources';
+import type { Borough, Coordinates, Resource } from '@/types/resources';
 
 type BoroughOption = {
   id: Borough | '';
@@ -12,6 +12,35 @@ const BOROUGH_LABELS: Record<Borough, string> = {
   bronx: 'Bronx',
   'staten-island': 'Staten Island',
   unknown: 'Unknown / Other',
+};
+
+const BOROUGH_MAP_FOCUS: Record<
+  Exclude<Borough, 'unknown'>,
+  {
+    center: Coordinates;
+    zoom: number;
+  }
+> = {
+  manhattan: {
+    center: { latitude: 40.7831, longitude: -73.9712 },
+    zoom: 11.4,
+  },
+  brooklyn: {
+    center: { latitude: 40.6782, longitude: -73.9442 },
+    zoom: 10.9,
+  },
+  queens: {
+    center: { latitude: 40.7282, longitude: -73.7949 },
+    zoom: 10.6,
+  },
+  bronx: {
+    center: { latitude: 40.8448, longitude: -73.8648 },
+    zoom: 11,
+  },
+  'staten-island': {
+    center: { latitude: 40.5795, longitude: -74.1502 },
+    zoom: 10.8,
+  },
 };
 
 const CITY_TO_BOROUGH: Record<string, Borough> = {
@@ -86,6 +115,14 @@ export function getBoroughLabel(borough: Borough | '' | null | undefined) {
   }
 
   return BOROUGH_LABELS[borough];
+}
+
+export function getBoroughMapFocus(borough: Borough | '' | null | undefined) {
+  if (!borough || borough === 'unknown') {
+    return null;
+  }
+
+  return BOROUGH_MAP_FOCUS[borough];
 }
 
 export function deriveBorough({

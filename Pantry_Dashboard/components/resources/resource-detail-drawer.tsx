@@ -57,14 +57,14 @@ export function ResourceDetailDrawer({
         role="dialog"
         aria-modal="true"
         className={cn(
-          'pointer-events-auto h-full w-full max-w-[860px] transform overflow-y-auto border-l border-line/70 bg-canvas p-4 shadow-card transition duration-300 lg:p-6',
+          'pointer-events-auto h-full w-full max-w-[820px] transform overflow-y-auto border-l border-line/70 bg-canvas p-3.5 shadow-card transition duration-300 lg:p-5',
           open ? 'translate-x-0' : 'translate-x-full',
         )}
       >
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-3.5 flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">Expanded card</p>
-            <h2 className="mt-1 text-3xl text-ink">Location details</h2>
+            <h2 className="mt-1 text-[1.9rem] text-ink">Location details</h2>
           </div>
           <button
             type="button"

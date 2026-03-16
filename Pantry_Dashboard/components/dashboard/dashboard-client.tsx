@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { startTransition, useDeferredValue, useMemo, useState } from 'react';
 import { Bookmark, ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react';
@@ -10,6 +9,7 @@ import {
   type ReadonlyURLSearchParams,
 } from 'next/navigation';
 
+import { BookmarksView } from '@/components/dashboard/bookmarks-view';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { FeedbackView } from '@/components/dashboard/feedback-view';
 import { InsightsView } from '@/components/dashboard/insights-view';
@@ -28,10 +28,11 @@ import {
   useReviewSummaries,
 } from '@/hooks/use-resources';
 import { createTimeframedSummaryMap } from '@/lib/analytics';
-import { getBoroughLabel, matchesBorough } from '@/lib/boroughs';
+import { getBoroughLabel, getBoroughMapFocus, matchesBorough } from '@/lib/boroughs';
 import { formatOneDecimal } from '@/lib/formatters';
 import { distanceInMiles, roundBounds } from '@/lib/geo';
 import type {
+  BookmarkedResource,
   Borough,
   Bounds,
   Coordinates,
@@ -67,7 +68,7 @@ const HIGH_WAIT_THRESHOLD_MINUTES = 45;
 const HIGH_FAILURE_THRESHOLD = 30;
 const INACCURATE_THRESHOLD = 20;
 
-type DashboardView = 'explore' | 'insights' | 'feedback';
+type DashboardView = 'explore' | 'insights' | 'feedback' | 'bookmarks';
 type InsightsScope = 'all' | 'bookmarked';
 
 type MapViewportState = {
@@ -76,7 +77,6 @@ type MapViewportState = {
 };
 
 const DEFAULT_FILTERS: DashboardFilterState = {
-  location: '',
   searchText: '',
   borough: '',
   resourceTypeId: '',
@@ -148,7 +148,6 @@ function readFiltersFromSearchParams(searchParams: ReadonlyURLSearchParams): Das
 
   return {
     ...DEFAULT_FILTERS,
-    location: searchParams.get('location') ?? '',
     searchText: searchParams.get('text') ?? '',
     borough: isBorough(borough) ? borough : '',
     resourceTypeId: searchParams.get('resourceTypeId') ?? '',
@@ -178,6 +177,7 @@ function readDashboardView(searchParams: ReadonlyURLSearchParams): DashboardView
   const view = searchParams.get('view');
   if (view === 'insights') return 'insights';
   if (view === 'feedback') return 'feedback';
+  if (view === 'bookmarks') return 'bookmarks';
   return 'explore';
 }
 
@@ -197,7 +197,6 @@ function createDashboardSearchParams({
   resourceId?: string | null;
 }) {
   const params = new URLSearchParams();
-  if (filters.location) params.set('location', filters.location);
   if (filters.searchText) params.set('text', filters.searchText);
   if (filters.borough) params.set('borough', filters.borough);
   if (filters.resourceTypeId) params.set('resourceTypeId', filters.resourceTypeId);
@@ -218,6 +217,7 @@ function createDashboardSearchParams({
   if (filters.nearbyRadiusMiles !== DEFAULT_FILTERS.nearbyRadiusMiles) params.set('nearbyRadiusMiles', String(filters.nearbyRadiusMiles));
   if (view === 'insights') params.set('view', 'insights');
   if (view === 'feedback') params.set('view', 'feedback');
+  if (view === 'bookmarks') params.set('view', 'bookmarks');
   if (insightsScope === 'bookmarked') params.set('insightsScope', 'bookmarked');
   if (resourceId) params.set('resourceId', resourceId);
   return params;
@@ -267,19 +267,6 @@ function matchesText(resource: Resource, query: string) {
   return haystack.includes(query);
 }
 
-function matchesLocation(resource: Resource, query: string) {
-  if (!query) return true;
-  const haystack = [
-    resource.address,
-    resource.streetAddress,
-    resource.cityStateZip,
-    resource.city,
-    resource.state,
-    resource.zipCode,
-  ].filter(Boolean).join(' ').toLowerCase();
-  return haystack.includes(query);
-}
-
 function matchesSelectedBorough(resource: Resource, borough: DashboardFilterState['borough']) {
   return matchesBorough(resource, borough);
 }
@@ -304,18 +291,15 @@ function filterResources({
   resources,
   filters,
   searchText,
-  locationText,
   reviewPayloadById,
 }: {
   resources: Resource[];
   filters: DashboardFilterState;
   searchText: string;
-  locationText: string;
   reviewPayloadById: Map<string, ReviewPayload>;
 }) {
   return resources.filter((resource) => {
     if (!matchesText(resource, searchText)) return false;
-    if (!matchesLocation(resource, locationText)) return false;
     if (!matchesSelectedBorough(resource, filters.borough)) return false;
     if (filters.resourceTypeId && resource.resourceTypeId !== filters.resourceTypeId) return false;
     if (filters.tagId && !resource.tags.some((tag) => tag.id === filters.tagId)) return false;
@@ -340,7 +324,6 @@ function getCurrentPageLabel(currentPage: number, totalPages: number) {
 
 function getPaginationFilterKey(filters: DashboardFilterState) {
   return JSON.stringify({
-    location: filters.location,
     searchText: filters.searchText,
     borough: filters.borough,
     resourceTypeId: filters.resourceTypeId,
@@ -361,10 +344,27 @@ function getPaginationFilterKey(filters: DashboardFilterState) {
   });
 }
 
+function toDashboardBookmarkResource(resource: BookmarkedResource): Resource {
+  return {
+    ...resource,
+    description: resource.description ?? '',
+    descriptionEs: resource.descriptionEs ?? null,
+    city: resource.city ?? null,
+    state: resource.state ?? null,
+    timezone: resource.timezone ?? null,
+    resourceStatus: resource.resourceStatus ?? null,
+    usageLimitSummary: resource.usageLimitSummary ?? null,
+    confidence: resource.confidence ?? null,
+    openByAppointment: resource.openByAppointment ?? false,
+    weeklySchedule: resource.weeklySchedule ?? [],
+    occurrences: resource.occurrences ?? [],
+  };
+}
+
 export function DashboardClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { bookmarkIds } = useBookmarks();
+  const { bookmarks } = useBookmarks();
   const [filters, setFilters] = useState<DashboardFilterState>(() =>
     readFiltersFromSearchParams(searchParams),
   );
@@ -387,18 +387,18 @@ export function DashboardClient() {
   });
 
   const deferredSearchText = useDeferredValue(filters.searchText);
-  const deferredLocation = useDeferredValue(filters.location);
   const normalizedSearchText = normalizeSearchText(deferredSearchText);
-  const normalizedLocation = normalizeSearchText(deferredLocation);
   const normalizedBounds = useMemo(() => roundBounds(mapViewport.bounds), [mapViewport.bounds]);
   const debouncedBounds = useDebouncedValue(normalizedBounds, 180);
   const debouncedCenter = useDebouncedValue(mapViewport.center, 180);
   const selectedResourceId = searchParams.get('resourceId');
+  const boroughMapFocus = useMemo(() => getBoroughMapFocus(filters.borough), [filters.borough]);
+  const effectiveQueryCenter = boroughMapFocus?.center ?? debouncedCenter;
 
   const filterKey = useMemo(() => getPaginationFilterKey(filters), [filters]);
   const resourcePaginationKey = useMemo(
-    () => JSON.stringify({ center: debouncedCenter, filters: filterKey }),
-    [debouncedCenter, filterKey],
+    () => JSON.stringify({ center: effectiveQueryCenter, filters: filterKey }),
+    [effectiveQueryCenter, filterKey],
   );
   const boundsPaginationKey = useMemo(
     () => JSON.stringify({ bounds: debouncedBounds, filters: filterKey }),
@@ -410,9 +410,8 @@ export function DashboardClient() {
   const currentBoundsCursor = effectiveBoundsCursors[effectiveBoundsCursors.length - 1] ?? null;
 
   const resourcesQuery = useInfiniteResources({
-    lat: debouncedCenter.latitude,
-    lng: debouncedCenter.longitude,
-    location: deferredLocation || undefined,
+    lat: effectiveQueryCenter.latitude,
+    lng: effectiveQueryCenter.longitude,
     text: deferredSearchText || undefined,
     borough: filters.borough || undefined,
     resourceTypeId: filters.resourceTypeId || undefined,
@@ -508,7 +507,26 @@ export function DashboardClient() {
     });
   }, [rawLoadedResources, aiStats]);
 
-  const reviewResourceIds = useMemo(() => loadedResources.map((resource) => resource.id), [loadedResources]);
+  const bookmarkResources = useMemo(
+    () =>
+      bookmarks.map(
+        (bookmark) =>
+          loadedResources.find((resource) => resource.id === bookmark.id) ??
+          toDashboardBookmarkResource(bookmark),
+      ),
+    [bookmarks, loadedResources],
+  );
+
+  const reviewResourceIds = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...loadedResources.map((resource) => resource.id),
+          ...bookmarkResources.map((resource) => resource.id),
+        ]),
+      ),
+    [bookmarkResources, loadedResources],
+  );
   const reviewSummariesQuery = useReviewSummaries(reviewResourceIds);
   const timeframedReviewPayloadById = useMemo(
     () => createTimeframedSummaryMap(reviewSummariesQuery.dataById, filters.timeframe),
@@ -521,13 +539,12 @@ export function DashboardClient() {
         resources: listBaseResources.map(r => loadedResources.find(lr => lr.id === r.id) || r),
         filters,
         searchText: normalizedSearchText,
-        locationText: normalizedLocation,
         reviewPayloadById: timeframedReviewPayloadById,
       }),
       filters.sort,
       timeframedReviewPayloadById,
     ),
-    [filters, listBaseResources, loadedResources, normalizedLocation, normalizedSearchText, timeframedReviewPayloadById],
+    [filters, listBaseResources, loadedResources, normalizedSearchText, timeframedReviewPayloadById],
   );
 
   const allFilteredResources = useMemo(
@@ -536,13 +553,26 @@ export function DashboardClient() {
         resources: loadedResources,
         filters,
         searchText: normalizedSearchText,
-        locationText: normalizedLocation,
         reviewPayloadById: timeframedReviewPayloadById,
       }),
       filters.sort,
       timeframedReviewPayloadById,
     ),
-    [filters, loadedResources, normalizedLocation, normalizedSearchText, timeframedReviewPayloadById],
+    [filters, loadedResources, normalizedSearchText, timeframedReviewPayloadById],
+  );
+
+  const bookmarkedFilteredResources = useMemo(
+    () => sortResources(
+      filterResources({
+        resources: bookmarkResources,
+        filters,
+        searchText: normalizedSearchText,
+        reviewPayloadById: timeframedReviewPayloadById,
+      }),
+      filters.sort,
+      timeframedReviewPayloadById,
+    ),
+    [bookmarkResources, filters, normalizedSearchText, timeframedReviewPayloadById],
   );
 
   // --- TOP SHORTAGES LOGIC ---
@@ -583,8 +613,11 @@ export function DashboardClient() {
   }, [visibleListResources]);
 
   const insightsResources = useMemo(
-    () => insightsScope === 'bookmarked' ? allFilteredResources.filter((resource) => bookmarkIds.has(resource.id)) : allFilteredResources,
-    [allFilteredResources, bookmarkIds, insightsScope],
+    () =>
+      insightsScope === 'bookmarked'
+        ? bookmarkedFilteredResources
+        : allFilteredResources,
+    [allFilteredResources, bookmarkedFilteredResources, insightsScope],
   );
 
   const feedbackResources = useMemo(
@@ -593,7 +626,11 @@ export function DashboardClient() {
   );
 
   const selectedResourceQuery = useResource(selectedResourceId);
-  const selectedResource = loadedResources.find((resource) => resource.id === selectedResourceId) ?? selectedResourceQuery.data ?? null;
+  const selectedResource =
+    loadedResources.find((resource) => resource.id === selectedResourceId) ??
+    bookmarkResources.find((resource) => resource.id === selectedResourceId) ??
+    selectedResourceQuery.data ??
+    null;
 
   const selectedCoordinates = selectedResource?.coordinates ?? markersQuery.data?.markers.find((marker) => marker.id === selectedResourceId)?.coordinates ?? null;
 
@@ -604,14 +641,41 @@ export function DashboardClient() {
       .map((resource) => resource.id);
   }, [filters.nearbyRadiusMiles, selectedCoordinates, selectedResourceId, visibleListResources]);
 
+  const filterOptionResources = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          [...loadedResources, ...bookmarkResources].map((resource) => [resource.id, resource]),
+        ).values(),
+      ),
+    [bookmarkResources, loadedResources],
+  );
+
   const resourceTypes = useMemo(
-    () => Array.from(new Map(loadedResources.filter((resource) => resource.resourceTypeId).map((resource) => [resource.resourceTypeId as string, { id: resource.resourceTypeId as string, label: resource.resourceTypeLabel }])).values()),
-    [loadedResources],
+    () =>
+      Array.from(
+        new Map(
+          filterOptionResources
+            .filter((resource) => resource.resourceTypeId)
+            .map((resource) => [
+              resource.resourceTypeId as string,
+              { id: resource.resourceTypeId as string, label: resource.resourceTypeLabel },
+            ]),
+        ).values(),
+      ),
+    [filterOptionResources],
   );
 
   const tags = useMemo(
-    () => Array.from(new Map(loadedResources.flatMap((resource) => resource.tags).map((tag) => [tag.id, { id: tag.id, label: tag.label }])).values()),
-    [loadedResources],
+    () =>
+      Array.from(
+        new Map(
+          filterOptionResources
+            .flatMap((resource) => resource.tags)
+            .map((tag) => [tag.id, { id: tag.id, label: tag.label }]),
+        ).values(),
+      ),
+    [filterOptionResources],
   );
 
   const totalPages = filters.syncListToMap
@@ -623,7 +687,11 @@ export function DashboardClient() {
   const canGoPrevious = filters.syncListToMap ? effectiveBoundsCursors.length > 0 : currentPageNumber > 1;
   const canGoNext = filters.syncListToMap ? Boolean(boundedResourcesQuery.data?.cursor) : currentPageNumber < resourcePages.length || resourcesQuery.hasNextPage;
   const activeBoroughLabel = filters.borough ? getBoroughLabel(filters.borough) : 'All boroughs';
-  const insightsScopeLabel = filters.syncListToMap ? 'Map viewport scope' : 'Fetched results scope';
+  const insightsScopeLabel = insightsScope === 'bookmarked'
+    ? 'Saved bookmarks scope'
+    : filters.syncListToMap
+      ? 'Map viewport scope'
+      : 'Fetched results scope';
 
   function replaceUrl(resourceId?: string | null, view = activeView, nextInsightsScope: InsightsScope = insightsScope) {
     startTransition(() => {
@@ -684,22 +752,22 @@ return (
         showBookmarksNav={false}
         title={
           <div className="flex flex-col gap-0.5">
-            <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl xl:text-6xl">
+            <h1 className="text-[2.75rem] font-black leading-tight tracking-tight text-white sm:text-[3.5rem] xl:text-[4.25rem]">
               LemonLens
             </h1>
-            <h2 className="text-base font-semibold text-white/80 sm:text-lg">
+            <h2 className="text-sm font-semibold text-white/80 sm:text-base">
               Food resource operations dashboard
             </h2>
           </div>
         }
         description="Explore pantry and meal-service locations on the map, scan compact cards, and view dietary availability insights."
         aside={
-          <div className="flex w-full flex-wrap items-center gap-2.5 xl:w-auto xl:justify-end">
+          <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
             <div className="flex flex-wrap items-center rounded-full border border-white/20 bg-white/10 p-1 backdrop-blur-md">
               <button
                 type="button"
                 onClick={() => updateView('explore')}
-                className={`rounded-full px-4 py-2 text-sm font-black transition ${
+                className={`rounded-full px-3.5 py-1.5 text-[0.84rem] font-black transition ${
                   activeView === 'explore' ? 'bg-[#FFD700] text-[#6D4AFF]' : 'text-white hover:bg-white/10'
                 }`}
               >
@@ -708,7 +776,7 @@ return (
               <button
                 type="button"
                 onClick={() => updateView('insights')}
-                className={`rounded-full px-4 py-2 text-sm font-black transition ${
+                className={`rounded-full px-3.5 py-1.5 text-[0.84rem] font-black transition ${
                   activeView === 'insights' ? 'bg-[#FFD700] text-[#6D4AFF]' : 'text-white hover:bg-white/10'
                 }`}
               >
@@ -717,21 +785,26 @@ return (
               <button
                 type="button"
                 onClick={() => updateView('feedback')}
-                className={`rounded-full px-4 py-2 text-sm font-black transition ${
+                className={`rounded-full px-3.5 py-1.5 text-[0.84rem] font-black transition ${
                   activeView === 'feedback' ? 'bg-[#FFD700] text-[#6D4AFF]' : 'text-white hover:bg-white/10'
                 }`}
               >
                 Feedback
               </button>
             </div>
-            <Link
-              href="/bookmarks"
-              className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur-md transition hover:bg-white/15"
+            <button
+              type="button"
+              onClick={() => updateView('bookmarks')}
+              className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/20 px-3.5 py-1.5 text-[0.84rem] font-black backdrop-blur-md transition ${
+                activeView === 'bookmarks'
+                  ? 'bg-[#FFD700] text-[#6D4AFF]'
+                  : 'bg-white/10 text-white hover:bg-white/15'
+              }`}
             >
               <Bookmark className="h-4 w-4" />
               Bookmarks
-            </Link>
-            <div className="whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur-md">
+            </button>
+            <div className="whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-[0.84rem] font-black text-white backdrop-blur-md">
               {markersQuery.data?.markers.length ?? 0} map pins
             </div>
           </div>
@@ -741,27 +814,27 @@ return (
           <FeedbackView resources={feedbackResources} />
         ) : activeView === 'explore' ? (
           <>
-            <div className="mb-3 flex gap-2 lg:hidden">
-              <button type="button" onClick={() => setMobilePane('map')} className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition ${mobilePane === 'map' ? 'bg-pine text-white' : 'border border-line/80 bg-white/80 text-slate'}`}>Map</button>
-              <button type="button" onClick={() => setMobilePane('list')} className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition ${mobilePane === 'list' ? 'bg-pine text-white' : 'border border-line/80 bg-white/80 text-slate'}`}>Resources</button>
+            <div className="mb-2.5 flex gap-2 lg:hidden">
+              <button type="button" onClick={() => setMobilePane('map')} className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${mobilePane === 'map' ? 'bg-pine text-white' : 'border border-line/80 bg-white/80 text-slate'}`}>Map</button>
+              <button type="button" onClick={() => setMobilePane('list')} className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${mobilePane === 'list' ? 'bg-pine text-white' : 'border border-line/80 bg-white/80 text-slate'}`}>Resources</button>
             </div>
 
-            <div className="grid gap-3 xl:grid-cols-[minmax(0,1.32fr),minmax(420px,1fr)]">
-              <section className={`panel-surface overflow-hidden p-2.5 lg:h-[calc(100vh-8.6rem)] ${mobilePane === 'list' ? 'hidden lg:block' : 'block'}`}>
-                <ResourceMap markers={markersQuery.data?.markers ?? []} listedResources={visibleListResources} selectedResourceId={selectedResourceId} selectedCoordinates={selectedCoordinates} nearbyRadiusMiles={filters.nearbyRadiusMiles} onViewportChange={setMapViewport} onOpenResource={openResource} />
+            <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1.32fr),minmax(400px,1fr)]">
+              <section className={`panel-surface overflow-hidden p-2 lg:h-[calc(100vh-8.6rem)] ${mobilePane === 'list' ? 'hidden lg:block' : 'block'}`}>
+                <ResourceMap markers={markersQuery.data?.markers ?? []} listedResources={visibleListResources} selectedResourceId={selectedResourceId} selectedCoordinates={selectedCoordinates} nearbyRadiusMiles={filters.nearbyRadiusMiles} focusViewport={boroughMapFocus} onViewportChange={setMapViewport} onOpenResource={openResource} />
               </section>
 
-              <section className={`panel-surface flex min-h-[580px] flex-col overflow-hidden lg:h-[calc(100vh-8.6rem)] ${mobilePane === 'map' ? 'hidden lg:flex' : 'flex'}`}>
-                <div className="border-b border-line/70 bg-card/95 px-4 py-3 backdrop-blur lg:px-4 lg:py-3.5">
+              <section className={`panel-surface flex min-h-[540px] flex-col overflow-hidden lg:h-[calc(100vh-8.6rem)] ${mobilePane === 'map' ? 'hidden lg:flex' : 'flex'}`}>
+                <div className="border-b border-line/70 bg-card/95 px-3.5 py-2.5 backdrop-blur lg:px-3.5 lg:py-3">
                   <ResourceFilters filters={filters} onChange={updateFilters} resourceTypes={resourceTypes} tags={tags} resultCount={visibleListResources.length} selectedName={selectedResource?.name} pageLabel={pageLabel} />
                 </div>
 
-                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3 lg:px-4">
+                <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3.5 py-2.5 lg:px-3.5">
 
                   {/* --- TOP SHORTAGES BOARD --- */}
                   {topDisruptions.length > 0 && (
-                    <div className="panel-surface mb-4 border-l-4 border-l-[#6D4AFF] bg-white/40 p-4 backdrop-blur-sm shadow-sm">
-                      <div className="mb-3 flex items-center justify-between">
+                    <div className="panel-surface mb-3 border-l-4 border-l-[#6D4AFF] bg-white/40 p-3.5 backdrop-blur-sm shadow-sm">
+                      <div className="mb-2.5 flex items-center justify-between">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-[#6D4AFF]/60">
                           Operational Priority Board (Top 5 Gaps)
                         </h3>
@@ -769,12 +842,12 @@ return (
                           ACTION REQUIRED
                         </span>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         {topDisruptions.map((item, idx) => (
                           <div
                             key={item.id}
                             onClick={() => openResource(item.id)}
-                            className="flex cursor-pointer items-center justify-between rounded-xl border border-transparent bg-white/80 p-2.5 transition hover:border-[#6D4AFF]/20 hover:bg-mist/65"
+                            className="flex cursor-pointer items-center justify-between rounded-xl border border-transparent bg-white/80 p-2 transition hover:border-[#6D4AFF]/20 hover:bg-mist/65"
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-sm font-black text-slate/20">#{idx + 1}</span>
@@ -798,7 +871,7 @@ return (
 
                   {/* --- INSIGHTS BAR --- */}
                   {foodInsightsStats && (
-                    <div className="flex flex-wrap gap-2 rounded-[22px] bg-white/60 border border-line/50 p-4 mb-2 shadow-sm backdrop-blur-sm justify-between">
+                    <div className="mb-1.5 flex flex-wrap justify-between gap-2 rounded-[20px] border border-line/50 bg-white/60 p-3.5 shadow-sm backdrop-blur-sm">
                       <div className="flex-1 min-w-[60px] text-center">
                         <p className="text-lg font-bold text-[#6D4AFF]">{foodInsightsStats.produce}%</p>
                         <p className="text-[10px] text-slate/50 uppercase font-bold tracking-tight">Produce</p>
@@ -831,9 +904,9 @@ return (
                   )}
 
                   {filters.syncListToMap && boundedResourcesQuery.data ? (
-                    <div className="rounded-[22px] bg-mist/75 px-4 py-2.5 text-sm text-slate">Viewport contains {boundedResourcesQuery.data.totalMarkers} markers.</div>
+                    <div className="rounded-[20px] bg-mist/75 px-3.5 py-2 text-sm text-slate">Viewport contains {boundedResourcesQuery.data.totalMarkers} markers.</div>
                   ) : (
-                    <div className="rounded-[22px] bg-mist/75 px-4 py-2.5 text-sm text-slate">Showing compact page of resources.</div>
+                    <div className="rounded-[20px] bg-mist/75 px-3.5 py-2 text-sm text-slate">Showing compact page of resources.</div>
                   )}
 
                   {showListLoading ? (
@@ -848,7 +921,7 @@ return (
                     <ResourceCard key={resource.id} resource={resource} reviewPayload={timeframedReviewPayloadById.get(resource.id) ?? null} selected={resource.id === selectedResourceId} nearby={nearbyIds.includes(resource.id)} onMoreInfo={() => openResource(resource.id)} />
                   ))}
 
-                  <div className="sticky bottom-0 z-10 -mx-1 mt-1 rounded-[22px] border border-line/70 bg-white/92 px-3 py-3 shadow-soft backdrop-blur">
+                  <div className="sticky bottom-0 z-10 -mx-1 mt-1 rounded-[20px] border border-line/70 bg-white/92 px-3 py-2.5 shadow-soft backdrop-blur">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-sm text-slate">{pageLabel}{showPageTransitionLoading ? ' • loading…' : ''}</p>
                       <div className="flex items-center gap-2">
@@ -873,6 +946,12 @@ return (
             </section>
             <InsightsView resources={insightsResources} reviewPayloadById={timeframedReviewPayloadById} timeframe={filters.timeframe} scopeLabel={insightsScopeLabel} activeBoroughLabel={activeBoroughLabel} insightsScope={insightsScope} onInsightsScopeChange={updateInsightsScope} isLoading={reviewSummariesQuery.isLoading} onOpenResource={openResource} />
           </div>
+        ) : activeView === 'bookmarks' ? (
+          <BookmarksView
+            resources={bookmarkResources}
+            reviewPayloadById={timeframedReviewPayloadById}
+            onOpenResource={openResource}
+          />
         ) : null}
       </DashboardShell>
       <ResourceDetailDrawer resourceId={selectedResourceId} open={Boolean(selectedResourceId)} timeframe={filters.timeframe} onClose={closeResource} />

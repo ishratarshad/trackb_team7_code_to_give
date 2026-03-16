@@ -155,17 +155,17 @@ export function InsightsView({
   }
 
   return (
-    <div className="grid gap-4 print:p-0">
+    <div className="grid gap-3 print:p-0">
       {/* HEADER & PDF EXPORT */}
-      <section className="panel-surface p-5">
+      <section className="panel-surface p-[1.125rem]">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">Structured Insights</p>
-            <h2 className="mt-2 text-3xl text-ink">Resource Operations Snapshot</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate">
+            <h2 className="mt-1.5 text-[1.85rem] text-ink">Resource Operations Snapshot</h2>
+            <p className="mt-1.5 max-w-3xl text-sm leading-6 text-slate">
               Summaries for {timeframeLabel.toLowerCase()} across {resources.length} resources.
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2.5 flex flex-wrap gap-2">
               <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink">
                 Borough: {activeBoroughLabel}
               </span>
@@ -175,7 +175,7 @@ export function InsightsView({
               <button
                 onClick={handleExportPDF}
                 disabled={isExporting}
-                className="print:hidden flex items-center gap-2 rounded-full bg-pine px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-60"
+                className="print:hidden flex items-center gap-2 rounded-full bg-pine px-3.5 py-1.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isExporting ? (
                   <>
@@ -210,7 +210,7 @@ export function InsightsView({
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-4 grid gap-2.5 md:grid-cols-2 xl:grid-cols-4">
           <KpiCard icon={<Clock3 className="h-4 w-4 text-pine" />} label="Average wait" value={formatWaitTime(insights.kpis.averageWaitMinutes)} />
           <KpiCard icon={<Target className="h-4 w-4 text-pine" />} label="Help success" value={formatPercentage(insights.kpis.helpSuccessRate)} />
           <KpiCard icon={<AlertTriangle className="h-4 w-4 text-pine" />} label="Unmet demand" value={formatPercentage(insights.kpis.unmetDemand)} />
@@ -219,13 +219,13 @@ export function InsightsView({
       </section>
 
       {/* TEAM 7: SUPPLY & HEALTH INDICATORS */}
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="panel-surface p-5">
-          <div className="flex items-center gap-2 mb-6">
+      <section className="grid gap-3 lg:grid-cols-2">
+        <div className="panel-surface p-[1.125rem]">
+          <div className="mb-5 flex items-center gap-2">
             <PieIcon className="h-5 w-5 text-pine" />
-            <h3 className="text-xl font-bold text-ink">Pantry Supply Breakdown</h3>
+            <h3 className="text-lg font-bold text-ink">Pantry Supply Breakdown</h3>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {supplyBreakdown.map((item) => (
               <div key={item.label} className="space-y-1.5">
                 <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate">
@@ -243,10 +243,10 @@ export function InsightsView({
           </div>
         </div>
 
-        <div className="panel-surface border-2 border-dashed border-amber/50 bg-gradient-to-br from-mist/40 via-white/90 to-pine/5 p-5">
+        <div className="panel-surface border-2 border-dashed border-amber/50 bg-gradient-to-br from-mist/40 via-white/90 to-pine/5 p-[1.125rem]">
           <div className="mb-2 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-pine" />
-            <h3 className="text-xl font-bold text-ink">Neighborhood Health Indicators</h3>
+            <h3 className="text-lg font-bold text-ink">Neighborhood Health Indicators</h3>
           </div>
           <p className="mb-6 text-xs text-slate">Layered Data: NYC Health Atlas & Internal Metrics</p>
           <div className="grid grid-cols-2 gap-4">
@@ -259,18 +259,18 @@ export function InsightsView({
       </section>
 
       {/* TRENDS */}
-      <section className="grid gap-4 xl:grid-cols-3">
+      <section className="grid gap-3 xl:grid-cols-3">
         <TrendCard title="Wait time over time" metric="Minutes" data={insights.timeline} valueSelector={(p) => p.averageWaitMinutes} valueFormatter={formatWaitTime} />
         <TrendCard title="Rating over time" metric="Rating" data={insights.timeline} valueSelector={(p) => p.averageRating} valueFormatter={(v) => v?.toFixed(1) ?? 'N/A'} />
         <TrendCard title="Success over time" metric="Success rate" data={insights.timeline} valueSelector={(p) => p.helpSuccessRate} valueFormatter={formatPercentage} />
       </section>
 
       {/* BARRIERS & PRIORITY VIEW */}
-      <section className="grid gap-4 xl:grid-cols-[0.92fr,1.08fr]">
-        <div className="panel-surface p-5">
-          <h3 className="text-2xl text-ink">Reported Barriers</h3>
+      <section className="grid gap-3 xl:grid-cols-[0.92fr,1.08fr]">
+        <div className="panel-surface p-[1.125rem]">
+          <h3 className="text-[1.45rem] text-ink">Reported Barriers</h3>
           {insights.structuredSignals.length ? (
-            <div className="mt-5 space-y-3">
+            <div className="mt-4 space-y-2.5">
               {insights.structuredSignals.map((signal, index) => (
                 <div key={signal.label}>
                   <div className="mb-1.5 flex items-center justify-between text-sm text-slate">
@@ -294,14 +294,14 @@ export function InsightsView({
           )}
         </div>
 
-        <div className="panel-surface p-5">
-          <h3 className="text-2xl text-ink">Locations Needing Attention</h3>
-          <div className="mt-5 overflow-hidden rounded-[24px] border border-line/80">
+        <div className="panel-surface p-[1.125rem]">
+          <h3 className="text-[1.45rem] text-ink">Locations Needing Attention</h3>
+          <div className="mt-4 overflow-hidden rounded-[22px] border border-line/80">
             <div className="max-h-[420px] overflow-y-auto divide-y divide-line/70 bg-white/85">
               {insights.serviceDisruptions.slice(0, 5).map((alert) => (
                 <div
                   key={alert.resourceId}
-                  className="flex cursor-pointer items-center justify-between p-4 transition hover:bg-mist/30"
+                  className="flex cursor-pointer items-center justify-between p-3.5 transition hover:bg-mist/30"
                   onClick={() => onOpenResource(alert.resourceId)}
                 >
                   <div className="min-w-0">

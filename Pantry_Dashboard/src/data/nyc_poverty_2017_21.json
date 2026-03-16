@@ -1,0 +1,1195 @@
+{
+  "sourceFile": "NYC EH Data Portal - Neighborhood poverty (full table).csv",
+  "timePeriod": "2017-21",
+  "neighborhoods": [
+    {
+      "geoId": "50101",
+      "geography": "Mott Haven-Port Morris",
+      "borough": "Bronx",
+      "percent": 43.7
+    },
+    {
+      "geoId": "50102",
+      "geography": "Melrose",
+      "borough": "Bronx",
+      "percent": 40.7
+    },
+    {
+      "geoId": "50201",
+      "geography": "Hunts Point",
+      "borough": "Bronx",
+      "percent": 34.3
+    },
+    {
+      "geoId": "50202",
+      "geography": "Longwood",
+      "borough": "Bronx",
+      "percent": 32
+    },
+    {
+      "geoId": "50301",
+      "geography": "Morrisania",
+      "borough": "Bronx",
+      "percent": 35.7
+    },
+    {
+      "geoId": "50302",
+      "geography": "Claremont Village-Claremont (East)",
+      "borough": "Bronx",
+      "percent": 43.2
+    },
+    {
+      "geoId": "50303",
+      "geography": "Crotona Park East",
+      "borough": "Bronx",
+      "percent": 29.4
+    },
+    {
+      "geoId": "50401",
+      "geography": "Concourse-Concourse Village",
+      "borough": "Bronx",
+      "percent": 31.9
+    },
+    {
+      "geoId": "50402",
+      "geography": "Highbridge",
+      "borough": "Bronx",
+      "percent": 33.9
+    },
+    {
+      "geoId": "50403",
+      "geography": "Mount Eden-Claremont (West)",
+      "borough": "Bronx",
+      "percent": 31.8
+    },
+    {
+      "geoId": "50501",
+      "geography": "University Heights (South)-Morris Heights",
+      "borough": "Bronx",
+      "percent": 34.4
+    },
+    {
+      "geoId": "50502",
+      "geography": "Mount Hope",
+      "borough": "Bronx",
+      "percent": 30.2
+    },
+    {
+      "geoId": "50503",
+      "geography": "Fordham Heights",
+      "borough": "Bronx",
+      "percent": 33.2
+    },
+    {
+      "geoId": "50601",
+      "geography": "West Farms",
+      "borough": "Bronx",
+      "percent": 44.8
+    },
+    {
+      "geoId": "50602",
+      "geography": "Tremont",
+      "borough": "Bronx",
+      "percent": 36.3
+    },
+    {
+      "geoId": "50603",
+      "geography": "Belmont",
+      "borough": "Bronx",
+      "percent": 39.6
+    },
+    {
+      "geoId": "50701",
+      "geography": "University Heights (North)-Fordham",
+      "borough": "Bronx",
+      "percent": 25.8
+    },
+    {
+      "geoId": "50702",
+      "geography": "Bedford Park",
+      "borough": "Bronx",
+      "percent": 24.8
+    },
+    {
+      "geoId": "50703",
+      "geography": "Norwood",
+      "borough": "Bronx",
+      "percent": 29.3
+    },
+    {
+      "geoId": "50801",
+      "geography": "Kingsbridge Heights-Van Cortlandt Village",
+      "borough": "Bronx",
+      "percent": 25.1
+    },
+    {
+      "geoId": "50802",
+      "geography": "Kingsbridge-Marble Hill",
+      "borough": "Bronx",
+      "percent": 26.6
+    },
+    {
+      "geoId": "50803",
+      "geography": "Riverdale-Spuyten Duyvil",
+      "borough": "Bronx",
+      "percent": 6.8
+    },
+    {
+      "geoId": "50901",
+      "geography": "Soundview-Bruckner-Bronx River",
+      "borough": "Bronx",
+      "percent": 30.1
+    },
+    {
+      "geoId": "50902",
+      "geography": "Soundview-Clason Point",
+      "borough": "Bronx",
+      "percent": 24.4
+    },
+    {
+      "geoId": "50903",
+      "geography": "Castle Hill-Unionport",
+      "borough": "Bronx",
+      "percent": 21.6
+    },
+    {
+      "geoId": "50904",
+      "geography": "Parkchester",
+      "borough": "Bronx",
+      "percent": 21
+    },
+    {
+      "geoId": "51001",
+      "geography": "Westchester Square",
+      "borough": "Bronx",
+      "percent": 22
+    },
+    {
+      "geoId": "51002",
+      "geography": "Throgs Neck-Schuylerville",
+      "borough": "Bronx",
+      "percent": 14.4
+    },
+    {
+      "geoId": "51003",
+      "geography": "Pelham Bay-Country Club-City Island",
+      "borough": "Bronx",
+      "percent": 9.8
+    },
+    {
+      "geoId": "51004",
+      "geography": "Co-op City",
+      "borough": "Bronx",
+      "percent": 9.5
+    },
+    {
+      "geoId": "51101",
+      "geography": "Pelham Parkway-Van Nest",
+      "borough": "Bronx",
+      "percent": 16.7
+    },
+    {
+      "geoId": "51102",
+      "geography": "Morris Park",
+      "borough": "Bronx",
+      "percent": 11.5
+    },
+    {
+      "geoId": "51103",
+      "geography": "Pelham Gardens",
+      "borough": "Bronx",
+      "percent": 12.6
+    },
+    {
+      "geoId": "51104",
+      "geography": "Allerton",
+      "borough": "Bronx",
+      "percent": 24.6
+    },
+    {
+      "geoId": "51201",
+      "geography": "Williamsbridge-Olinville",
+      "borough": "Bronx",
+      "percent": 21
+    },
+    {
+      "geoId": "51202",
+      "geography": "Eastchester-Edenwald-Baychester",
+      "borough": "Bronx",
+      "percent": 15.1
+    },
+    {
+      "geoId": "51203",
+      "geography": "Wakefield-Woodlawn",
+      "borough": "Bronx",
+      "percent": 15.2
+    },
+    {
+      "geoId": "470101",
+      "geography": "Greenpoint",
+      "borough": "Brooklyn",
+      "percent": 9.3
+    },
+    {
+      "geoId": "470102",
+      "geography": "Williamsburg",
+      "borough": "Brooklyn",
+      "percent": 15.8
+    },
+    {
+      "geoId": "470103",
+      "geography": "South Williamsburg",
+      "borough": "Brooklyn",
+      "percent": 50.3
+    },
+    {
+      "geoId": "470104",
+      "geography": "East Williamsburg",
+      "borough": "Brooklyn",
+      "percent": 25.4
+    },
+    {
+      "geoId": "470201",
+      "geography": "Brooklyn Heights",
+      "borough": "Brooklyn",
+      "percent": 4
+    },
+    {
+      "geoId": "470202",
+      "geography": "Downtown Brooklyn-DUMBO-Boerum Hill",
+      "borough": "Brooklyn",
+      "percent": 16
+    },
+    {
+      "geoId": "470203",
+      "geography": "Fort Greene",
+      "borough": "Brooklyn",
+      "percent": 18.5
+    },
+    {
+      "geoId": "470204",
+      "geography": "Clinton Hill",
+      "borough": "Brooklyn",
+      "percent": 9.4
+    },
+    {
+      "geoId": "470301",
+      "geography": "Bedford-Stuyvesant (West)",
+      "borough": "Brooklyn",
+      "percent": 26
+    },
+    {
+      "geoId": "470302",
+      "geography": "Bedford-Stuyvesant (East)",
+      "borough": "Brooklyn",
+      "percent": 22.2
+    },
+    {
+      "geoId": "470401",
+      "geography": "Bushwick (West)",
+      "borough": "Brooklyn",
+      "percent": 20.7
+    },
+    {
+      "geoId": "470402",
+      "geography": "Bushwick (East)",
+      "borough": "Brooklyn",
+      "percent": 24.3
+    },
+    {
+      "geoId": "470501",
+      "geography": "Cypress Hills",
+      "borough": "Brooklyn",
+      "percent": 19.3
+    },
+    {
+      "geoId": "470502",
+      "geography": "East New York (North)",
+      "borough": "Brooklyn",
+      "percent": 25.5
+    },
+    {
+      "geoId": "470503",
+      "geography": "East New York-New Lots",
+      "borough": "Brooklyn",
+      "percent": 25.3
+    },
+    {
+      "geoId": "470504",
+      "geography": "Spring Creek-Starrett City",
+      "borough": "Brooklyn",
+      "percent": 25.2
+    },
+    {
+      "geoId": "470505",
+      "geography": "East New York-City Line",
+      "borough": "Brooklyn",
+      "percent": 26
+    },
+    {
+      "geoId": "470601",
+      "geography": "Carroll Gardens-Cobble Hill-Gowanus-Red Hook",
+      "borough": "Brooklyn",
+      "percent": 14.5
+    },
+    {
+      "geoId": "470602",
+      "geography": "Park Slope",
+      "borough": "Brooklyn",
+      "percent": 5.1
+    },
+    {
+      "geoId": "470701",
+      "geography": "Windsor Terrace-South Slope",
+      "borough": "Brooklyn",
+      "percent": 7.9
+    },
+    {
+      "geoId": "470702",
+      "geography": "Sunset Park (West)",
+      "borough": "Brooklyn",
+      "percent": 16.4
+    },
+    {
+      "geoId": "470703",
+      "geography": "Sunset Park (Central)",
+      "borough": "Brooklyn",
+      "percent": 23.2
+    },
+    {
+      "geoId": "470801",
+      "geography": "Prospect Heights",
+      "borough": "Brooklyn",
+      "percent": 7.3
+    },
+    {
+      "geoId": "470802",
+      "geography": "Crown Heights (North)",
+      "borough": "Brooklyn",
+      "percent": 20.5
+    },
+    {
+      "geoId": "470901",
+      "geography": "Crown Heights (South)",
+      "borough": "Brooklyn",
+      "percent": 17.4
+    },
+    {
+      "geoId": "470902",
+      "geography": "Prospect Lefferts Gardens-Wingate",
+      "borough": "Brooklyn",
+      "percent": 16.1
+    },
+    {
+      "geoId": "471001",
+      "geography": "Bay Ridge",
+      "borough": "Brooklyn",
+      "percent": 11.4
+    },
+    {
+      "geoId": "471002",
+      "geography": "Dyker Heights",
+      "borough": "Brooklyn",
+      "percent": 18.5
+    },
+    {
+      "geoId": "471101",
+      "geography": "Bensonhurst",
+      "borough": "Brooklyn",
+      "percent": 16.8
+    },
+    {
+      "geoId": "471102",
+      "geography": "Bath Beach",
+      "borough": "Brooklyn",
+      "percent": 15.3
+    },
+    {
+      "geoId": "471103",
+      "geography": "Gravesend (West)",
+      "borough": "Brooklyn",
+      "percent": 19.1
+    },
+    {
+      "geoId": "471201",
+      "geography": "Sunset Park (East)-Borough Park (West)",
+      "borough": "Brooklyn",
+      "percent": 27.4
+    },
+    {
+      "geoId": "471202",
+      "geography": "Borough Park",
+      "borough": "Brooklyn",
+      "percent": 34.5
+    },
+    {
+      "geoId": "471203",
+      "geography": "Kensington",
+      "borough": "Brooklyn",
+      "percent": 14.5
+    },
+    {
+      "geoId": "471204",
+      "geography": "Mapleton-Midwood (West)",
+      "borough": "Brooklyn",
+      "percent": 19.7
+    },
+    {
+      "geoId": "471301",
+      "geography": "Gravesend (South)",
+      "borough": "Brooklyn",
+      "percent": 20.3
+    },
+    {
+      "geoId": "471302",
+      "geography": "Coney Island-Sea Gate",
+      "borough": "Brooklyn",
+      "percent": 27.4
+    },
+    {
+      "geoId": "471303",
+      "geography": "Brighton Beach",
+      "borough": "Brooklyn",
+      "percent": 23
+    },
+    {
+      "geoId": "471401",
+      "geography": "Flatbush",
+      "borough": "Brooklyn",
+      "percent": 13.7
+    },
+    {
+      "geoId": "471402",
+      "geography": "Flatbush (West)-Ditmas Park-Parkville",
+      "borough": "Brooklyn",
+      "percent": 15.5
+    },
+    {
+      "geoId": "471403",
+      "geography": "Midwood",
+      "borough": "Brooklyn",
+      "percent": 15.5
+    },
+    {
+      "geoId": "471501",
+      "geography": "Gravesend (East)-Homecrest",
+      "borough": "Brooklyn",
+      "percent": 15.9
+    },
+    {
+      "geoId": "471502",
+      "geography": "Madison",
+      "borough": "Brooklyn",
+      "percent": 15.5
+    },
+    {
+      "geoId": "471503",
+      "geography": "Sheepshead Bay-Manhattan Beach-Gerritsen Beach",
+      "borough": "Brooklyn",
+      "percent": 13.6
+    },
+    {
+      "geoId": "471601",
+      "geography": "Ocean Hill",
+      "borough": "Brooklyn",
+      "percent": 27.3
+    },
+    {
+      "geoId": "471602",
+      "geography": "Brownsville",
+      "borough": "Brooklyn",
+      "percent": 37.2
+    },
+    {
+      "geoId": "471701",
+      "geography": "East Flatbush-Erasmus",
+      "borough": "Brooklyn",
+      "percent": 15.2
+    },
+    {
+      "geoId": "471702",
+      "geography": "East Flatbush-Farragut",
+      "borough": "Brooklyn",
+      "percent": 10.1
+    },
+    {
+      "geoId": "471703",
+      "geography": "East Flatbush-Rugby",
+      "borough": "Brooklyn",
+      "percent": 12.3
+    },
+    {
+      "geoId": "471704",
+      "geography": "East Flatbush-Remsen Village",
+      "borough": "Brooklyn",
+      "percent": 18.7
+    },
+    {
+      "geoId": "471801",
+      "geography": "Flatlands",
+      "borough": "Brooklyn",
+      "percent": 10.1
+    },
+    {
+      "geoId": "471802",
+      "geography": "Marine Park-Mill Basin-Bergen Beach",
+      "borough": "Brooklyn",
+      "percent": 5.8
+    },
+    {
+      "geoId": "471803",
+      "geography": "Canarsie",
+      "borough": "Brooklyn",
+      "percent": 13
+    },
+    {
+      "geoId": "610101",
+      "geography": "Financial District-Battery Park City",
+      "borough": "Manhattan",
+      "percent": 5.4
+    },
+    {
+      "geoId": "610102",
+      "geography": "Tribeca-Civic Center",
+      "borough": "Manhattan",
+      "percent": 3.9
+    },
+    {
+      "geoId": "610201",
+      "geography": "SoHo-Little Italy-Hudson Square",
+      "borough": "Manhattan",
+      "percent": 11.1
+    },
+    {
+      "geoId": "610202",
+      "geography": "Greenwich Village",
+      "borough": "Manhattan",
+      "percent": 7.9
+    },
+    {
+      "geoId": "610203",
+      "geography": "West Village",
+      "borough": "Manhattan",
+      "percent": 6.9
+    },
+    {
+      "geoId": "610301",
+      "geography": "Chinatown-Two Bridges",
+      "borough": "Manhattan",
+      "percent": 32.4
+    },
+    {
+      "geoId": "610302",
+      "geography": "Lower East Side",
+      "borough": "Manhattan",
+      "percent": 24.9
+    },
+    {
+      "geoId": "610303",
+      "geography": "East Village",
+      "borough": "Manhattan",
+      "percent": 24.3
+    },
+    {
+      "geoId": "610401",
+      "geography": "Chelsea-Hudson Yards",
+      "borough": "Manhattan",
+      "percent": 11.5
+    },
+    {
+      "geoId": "610402",
+      "geography": "Hell's Kitchen",
+      "borough": "Manhattan",
+      "percent": 14
+    },
+    {
+      "geoId": "610501",
+      "geography": "Midtown South-Flatiron-Union Square",
+      "borough": "Manhattan",
+      "percent": 10.1
+    },
+    {
+      "geoId": "610502",
+      "geography": "Midtown-Times Square",
+      "borough": "Manhattan",
+      "percent": 10.4
+    },
+    {
+      "geoId": "610601",
+      "geography": "Stuyvesant Town-Peter Cooper Village",
+      "borough": "Manhattan",
+      "percent": 10.4
+    },
+    {
+      "geoId": "610602",
+      "geography": "Gramercy",
+      "borough": "Manhattan",
+      "percent": 10.8
+    },
+    {
+      "geoId": "610603",
+      "geography": "Murray Hill-Kips Bay",
+      "borough": "Manhattan",
+      "percent": 7.9
+    },
+    {
+      "geoId": "610604",
+      "geography": "East Midtown-Turtle Bay",
+      "borough": "Manhattan",
+      "percent": 6.5
+    },
+    {
+      "geoId": "610701",
+      "geography": "Upper West Side-Lincoln Square",
+      "borough": "Manhattan",
+      "percent": 9.9
+    },
+    {
+      "geoId": "610702",
+      "geography": "Upper West Side (Central)",
+      "borough": "Manhattan",
+      "percent": 7.8
+    },
+    {
+      "geoId": "610703",
+      "geography": "Upper West Side-Manhattan Valley",
+      "borough": "Manhattan",
+      "percent": 17
+    },
+    {
+      "geoId": "610801",
+      "geography": "Upper East Side-Lenox Hill-Roosevelt Island",
+      "borough": "Manhattan",
+      "percent": 7.7
+    },
+    {
+      "geoId": "610802",
+      "geography": "Upper East Side-Carnegie Hill",
+      "borough": "Manhattan",
+      "percent": 4.9
+    },
+    {
+      "geoId": "610803",
+      "geography": "Upper East Side-Yorkville",
+      "borough": "Manhattan",
+      "percent": 7
+    },
+    {
+      "geoId": "610901",
+      "geography": "Morningside Heights",
+      "borough": "Manhattan",
+      "percent": 22.3
+    },
+    {
+      "geoId": "610902",
+      "geography": "Manhattanville-West Harlem",
+      "borough": "Manhattan",
+      "percent": 26.7
+    },
+    {
+      "geoId": "610903",
+      "geography": "Hamilton Heights-Sugar Hill",
+      "borough": "Manhattan",
+      "percent": 24
+    },
+    {
+      "geoId": "611001",
+      "geography": "Harlem (South)",
+      "borough": "Manhattan",
+      "percent": 18.8
+    },
+    {
+      "geoId": "611002",
+      "geography": "Harlem (North)",
+      "borough": "Manhattan",
+      "percent": 25.1
+    },
+    {
+      "geoId": "611101",
+      "geography": "East Harlem (South)",
+      "borough": "Manhattan",
+      "percent": 29
+    },
+    {
+      "geoId": "611102",
+      "geography": "East Harlem (North)",
+      "borough": "Manhattan",
+      "percent": 32.3
+    },
+    {
+      "geoId": "611201",
+      "geography": "Washington Heights (South)",
+      "borough": "Manhattan",
+      "percent": 19.9
+    },
+    {
+      "geoId": "611202",
+      "geography": "Washington Heights (North)",
+      "borough": "Manhattan",
+      "percent": 14.8
+    },
+    {
+      "geoId": "611203",
+      "geography": "Inwood",
+      "borough": "Manhattan",
+      "percent": 15.3
+    },
+    {
+      "geoId": "810101",
+      "geography": "Astoria (North)-Ditmars-Steinway",
+      "borough": "Queens",
+      "percent": 9.4
+    },
+    {
+      "geoId": "810102",
+      "geography": "Old Astoria-Hallets Point",
+      "borough": "Queens",
+      "percent": 19.5
+    },
+    {
+      "geoId": "810103",
+      "geography": "Astoria (Central)",
+      "borough": "Queens",
+      "percent": 10.7
+    },
+    {
+      "geoId": "810104",
+      "geography": "Astoria (East)-Woodside (North)",
+      "borough": "Queens",
+      "percent": 9.8
+    },
+    {
+      "geoId": "810105",
+      "geography": "Queensbridge-Ravenswood-Dutch Kills",
+      "borough": "Queens",
+      "percent": 16.5
+    },
+    {
+      "geoId": "810201",
+      "geography": "Long Island City-Hunters Point",
+      "borough": "Queens",
+      "percent": 6
+    },
+    {
+      "geoId": "810202",
+      "geography": "Sunnyside",
+      "borough": "Queens",
+      "percent": 10.3
+    },
+    {
+      "geoId": "810203",
+      "geography": "Woodside",
+      "borough": "Queens",
+      "percent": 7.3
+    },
+    {
+      "geoId": "810301",
+      "geography": "Jackson Heights",
+      "borough": "Queens",
+      "percent": 13.2
+    },
+    {
+      "geoId": "810302",
+      "geography": "East Elmhurst",
+      "borough": "Queens",
+      "percent": 13.6
+    },
+    {
+      "geoId": "810303",
+      "geography": "North Corona",
+      "borough": "Queens",
+      "percent": 15.3
+    },
+    {
+      "geoId": "810401",
+      "geography": "Elmhurst",
+      "borough": "Queens",
+      "percent": 10.1
+    },
+    {
+      "geoId": "810402",
+      "geography": "Corona",
+      "borough": "Queens",
+      "percent": 19.2
+    },
+    {
+      "geoId": "810501",
+      "geography": "Maspeth",
+      "borough": "Queens",
+      "percent": 10.7
+    },
+    {
+      "geoId": "810502",
+      "geography": "Ridgewood",
+      "borough": "Queens",
+      "percent": 12.3
+    },
+    {
+      "geoId": "810503",
+      "geography": "Glendale",
+      "borough": "Queens",
+      "percent": 7.9
+    },
+    {
+      "geoId": "810504",
+      "geography": "Middle Village",
+      "borough": "Queens",
+      "percent": 6.4
+    },
+    {
+      "geoId": "810601",
+      "geography": "Rego Park",
+      "borough": "Queens",
+      "percent": 11.6
+    },
+    {
+      "geoId": "810602",
+      "geography": "Forest Hills",
+      "borough": "Queens",
+      "percent": 7.1
+    },
+    {
+      "geoId": "810701",
+      "geography": "College Point",
+      "borough": "Queens",
+      "percent": 10.6
+    },
+    {
+      "geoId": "810702",
+      "geography": "Whitestone-Beechhurst",
+      "borough": "Queens",
+      "percent": 7.9
+    },
+    {
+      "geoId": "810703",
+      "geography": "Bay Terrace-Clearview",
+      "borough": "Queens",
+      "percent": 6.4
+    },
+    {
+      "geoId": "810704",
+      "geography": "Murray Hill-Broadway Flushing",
+      "borough": "Queens",
+      "percent": 14.8
+    },
+    {
+      "geoId": "810705",
+      "geography": "East Flushing",
+      "borough": "Queens",
+      "percent": 16.7
+    },
+    {
+      "geoId": "810706",
+      "geography": "Queensboro Hill",
+      "borough": "Queens",
+      "percent": 14.3
+    },
+    {
+      "geoId": "810707",
+      "geography": "Flushing-Willets Point",
+      "borough": "Queens",
+      "percent": 20.9
+    },
+    {
+      "geoId": "810801",
+      "geography": "Kew Gardens Hills",
+      "borough": "Queens",
+      "percent": 11.9
+    },
+    {
+      "geoId": "810802",
+      "geography": "Pomonok-Electchester-Hillcrest",
+      "borough": "Queens",
+      "percent": 13.8
+    },
+    {
+      "geoId": "810803",
+      "geography": "Fresh Meadows-Utopia",
+      "borough": "Queens",
+      "percent": 9.4
+    },
+    {
+      "geoId": "810804",
+      "geography": "Jamaica Estates-Holliswood",
+      "borough": "Queens",
+      "percent": 8.9
+    },
+    {
+      "geoId": "810805",
+      "geography": "Jamaica Hills-Briarwood",
+      "borough": "Queens",
+      "percent": 14.5
+    },
+    {
+      "geoId": "810901",
+      "geography": "Kew Gardens",
+      "borough": "Queens",
+      "percent": 8.5
+    },
+    {
+      "geoId": "810902",
+      "geography": "Richmond Hill",
+      "borough": "Queens",
+      "percent": 10.6
+    },
+    {
+      "geoId": "810903",
+      "geography": "South Richmond Hill",
+      "borough": "Queens",
+      "percent": 12.7
+    },
+    {
+      "geoId": "810904",
+      "geography": "Ozone Park (North)",
+      "borough": "Queens",
+      "percent": 14.7
+    },
+    {
+      "geoId": "810905",
+      "geography": "Woodhaven",
+      "borough": "Queens",
+      "percent": 9.9
+    },
+    {
+      "geoId": "811001",
+      "geography": "South Ozone Park",
+      "borough": "Queens",
+      "percent": 9.7
+    },
+    {
+      "geoId": "811002",
+      "geography": "Ozone Park",
+      "borough": "Queens",
+      "percent": 11.8
+    },
+    {
+      "geoId": "811003",
+      "geography": "Howard Beach-Lindenwood",
+      "borough": "Queens",
+      "percent": 7.7
+    },
+    {
+      "geoId": "811101",
+      "geography": "Auburndale",
+      "borough": "Queens",
+      "percent": 8.5
+    },
+    {
+      "geoId": "811102",
+      "geography": "Bayside",
+      "borough": "Queens",
+      "percent": 9
+    },
+    {
+      "geoId": "811103",
+      "geography": "Douglaston-Little Neck",
+      "borough": "Queens",
+      "percent": 7.3
+    },
+    {
+      "geoId": "811104",
+      "geography": "Oakland Gardens-Hollis Hills",
+      "borough": "Queens",
+      "percent": 7.7
+    },
+    {
+      "geoId": "811201",
+      "geography": "Jamaica",
+      "borough": "Queens",
+      "percent": 15.7
+    },
+    {
+      "geoId": "811202",
+      "geography": "South Jamaica",
+      "borough": "Queens",
+      "percent": 13.4
+    },
+    {
+      "geoId": "811203",
+      "geography": "Baisley Park",
+      "borough": "Queens",
+      "percent": 11.4
+    },
+    {
+      "geoId": "811204",
+      "geography": "Springfield Gardens (North)-Rochdale Village",
+      "borough": "Queens",
+      "percent": 9.1
+    },
+    {
+      "geoId": "811205",
+      "geography": "St. Albans",
+      "borough": "Queens",
+      "percent": 8.6
+    },
+    {
+      "geoId": "811206",
+      "geography": "Hollis",
+      "borough": "Queens",
+      "percent": 9
+    },
+    {
+      "geoId": "811301",
+      "geography": "Glen Oaks-Floral Park-New Hyde Park",
+      "borough": "Queens",
+      "percent": 7.6
+    },
+    {
+      "geoId": "811302",
+      "geography": "Bellerose",
+      "borough": "Queens",
+      "percent": 7.3
+    },
+    {
+      "geoId": "811303",
+      "geography": "Queens Village",
+      "borough": "Queens",
+      "percent": 7.7
+    },
+    {
+      "geoId": "811304",
+      "geography": "Cambria Heights",
+      "borough": "Queens",
+      "percent": 5.3
+    },
+    {
+      "geoId": "811305",
+      "geography": "Laurelton",
+      "borough": "Queens",
+      "percent": 5.4
+    },
+    {
+      "geoId": "811306",
+      "geography": "Springfield Gardens (South)-Brookville",
+      "borough": "Queens",
+      "percent": 8.9
+    },
+    {
+      "geoId": "811307",
+      "geography": "Rosedale",
+      "borough": "Queens",
+      "percent": 8.8
+    },
+    {
+      "geoId": "811401",
+      "geography": "Far Rockaway-Bayswater",
+      "borough": "Queens",
+      "percent": 18.3
+    },
+    {
+      "geoId": "811402",
+      "geography": "Rockaway Beach-Arverne-Edgemere",
+      "borough": "Queens",
+      "percent": 22.1
+    },
+    {
+      "geoId": "811403",
+      "geography": "Breezy Point-Belle Harbor-Rockaway Park-Broad Channel",
+      "borough": "Queens",
+      "percent": 10.1
+    },
+    {
+      "geoId": "850101",
+      "geography": "St. George-New Brighton",
+      "borough": "Staten Island",
+      "percent": 18.5
+    },
+    {
+      "geoId": "850102",
+      "geography": "Tompkinsville-Stapleton-Clifton-Fox Hills",
+      "borough": "Staten Island",
+      "percent": 25.5
+    },
+    {
+      "geoId": "850103",
+      "geography": "Rosebank-Shore Acres-Park Hill",
+      "borough": "Staten Island",
+      "percent": 14.4
+    },
+    {
+      "geoId": "850104",
+      "geography": "West New Brighton-Silver Lake-Grymes Hill",
+      "borough": "Staten Island",
+      "percent": 9.9
+    },
+    {
+      "geoId": "850105",
+      "geography": "Westerleigh-Castleton Corners",
+      "borough": "Staten Island",
+      "percent": 5.1
+    },
+    {
+      "geoId": "850106",
+      "geography": "Port Richmond",
+      "borough": "Staten Island",
+      "percent": 22
+    },
+    {
+      "geoId": "850107",
+      "geography": "Mariner's Harbor-Arlington-Graniteville",
+      "borough": "Staten Island",
+      "percent": 16.8
+    },
+    {
+      "geoId": "850201",
+      "geography": "Grasmere-Arrochar-South Beach-Dongan Hills",
+      "borough": "Staten Island",
+      "percent": 11.3
+    },
+    {
+      "geoId": "850202",
+      "geography": "New Dorp-Midland Beach",
+      "borough": "Staten Island",
+      "percent": 8.5
+    },
+    {
+      "geoId": "850203",
+      "geography": "Todt Hill-Emerson Hill-Lighthouse Hill-Manor Heights",
+      "borough": "Staten Island",
+      "percent": 11
+    },
+    {
+      "geoId": "850204",
+      "geography": "New Springville-Willowbrook-Bulls Head-Travis",
+      "borough": "Staten Island",
+      "percent": 10
+    },
+    {
+      "geoId": "850301",
+      "geography": "Oakwood-Richmondtown",
+      "borough": "Staten Island",
+      "percent": 7.1
+    },
+    {
+      "geoId": "850302",
+      "geography": "Great Kills-Eltingville",
+      "borough": "Staten Island",
+      "percent": 6.4
+    },
+    {
+      "geoId": "850303",
+      "geography": "Arden Heights-Rossville",
+      "borough": "Staten Island",
+      "percent": 4.3
+    },
+    {
+      "geoId": "850304",
+      "geography": "Annadale-Huguenot-Prince's Bay-Woodrow",
+      "borough": "Staten Island",
+      "percent": 6
+    },
+    {
+      "geoId": "850305",
+      "geography": "Tottenville-Charleston",
+      "borough": "Staten Island",
+      "percent": 6.3
+    }
+  ],
+  "boroughs": {
+    "Bronx": 26.5,
+    "Brooklyn": 18.8,
+    "Manhattan": 15.6,
+    "Queens": 11.4,
+    "Staten Island": 10.3
+  }
+}

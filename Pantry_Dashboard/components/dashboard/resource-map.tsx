@@ -227,6 +227,7 @@ export function ResourceMap({
   selectedResourceId,
   selectedCoordinates,
   nearbyRadiusMiles,
+  focusViewport,
   onViewportChange,
   onOpenResource,
 }: {
@@ -235,11 +236,13 @@ export function ResourceMap({
   selectedResourceId: string | null;
   selectedCoordinates: Coordinates | null;
   nearbyRadiusMiles: number;
+  focusViewport?: { center: Coordinates; zoom: number } | null;
   onViewportChange: (viewport: MapViewportState) => void;
   onOpenResource: (resourceId: string) => void;
 }) {
   const mapRef = useRef<MapRef | null>(null);
   const syncFrameRef = useRef<number | null>(null);
+  const lastFocusKeyRef = useRef('');
   const lastViewportKeyRef = useRef('');
   const [activePopupMarker, setActivePopupMarker] = useState<PopupMarker | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -384,6 +387,30 @@ export function ResourceMap({
     };
   }, []);
 
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+
+    if (!map || !focusViewport) {
+      return;
+    }
+
+    const nextKey = JSON.stringify(focusViewport);
+
+    if (nextKey === lastFocusKeyRef.current) {
+      return;
+    }
+
+    lastFocusKeyRef.current = nextKey;
+    map.easeTo({
+      center: {
+        lat: focusViewport.center.latitude,
+        lng: focusViewport.center.longitude,
+      },
+      zoom: focusViewport.zoom,
+      duration: 600,
+    });
+  }, [focusViewport]);
+
   const updateCursor = useCallback((event: MapMouseEvent) => {
     const canvas = mapRef.current?.getCanvas();
     if (!canvas) {
@@ -399,7 +426,7 @@ export function ResourceMap({
 
   if (!hasMapboxToken()) {
     return (
-      <div className="flex h-full min-h-[420px] flex-col justify-between rounded-[28px] border border-dashed border-line/80 bg-white/70 p-6">
+      <div className="flex h-full min-h-[400px] flex-col justify-between rounded-[24px] border border-dashed border-line/80 bg-white/70 p-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">Map setup</p>
           <h3 className="mt-2 text-3xl text-ink">Mapbox token missing</h3>
@@ -425,13 +452,13 @@ export function ResourceMap({
   const activeOption = overlayOptions.find((option) => option.id === activeOverlay) ?? overlayOptions[0];
 
   return (
-    <div className="relative h-full min-h-[560px] overflow-hidden rounded-[28px]">
+    <div className="relative h-full min-h-[520px] overflow-hidden rounded-[24px]">
       {/* Overlay Dropdown Menu */}
       <div className="absolute top-3 right-3" style={{ zIndex: 1000 }}>
         <button
           type="button"
           onClick={() => setShowOverlayMenu(!showOverlayMenu)}
-          className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold shadow-lg transition ${
+          className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.72rem] font-semibold shadow-lg transition ${
             activeOverlay !== 'none'
               ? 'bg-pine text-white'
               : 'border border-line/80 bg-white/95 text-slate hover:border-pine/20 hover:text-pine'
@@ -501,9 +528,9 @@ export function ResourceMap({
         mapboxAccessToken={mapboxAccessToken}
         reuseMaps
         initialViewState={{
-          longitude: -74.006,
-          latitude: 40.7128,
-          zoom: 10.5,
+          longitude: focusViewport?.center.longitude ?? -74.006,
+          latitude: focusViewport?.center.latitude ?? 40.7128,
+          zoom: focusViewport?.zoom ?? 10.5,
         }}
         mapStyle="mapbox://styles/mapbox/light-v11"
         interactiveLayerIds={['clusters', 'unclustered-point', 'listed-halo-point']}
@@ -631,7 +658,9 @@ export function ResourceMap({
             longitude={popupMarker.longitude}
             latitude={popupMarker.latitude}
             anchor="bottom"
-            offset={18}
+            className="lemonlens-map-popup"
+            maxWidth="none"
+            offset={14}
             closeOnClick={false}
             closeOnMove={false}
             onClose={() => setActivePopupMarker(null)}
@@ -643,7 +672,7 @@ export function ResourceMap({
                 onOpen={() => onOpenResource(popupResourceQuery.data.id)}
               />
             ) : (
-              <div className="w-[260px] rounded-[24px] bg-white p-4 text-sm text-slate">
+              <div className="w-[232px] rounded-[18px] bg-[linear-gradient(180deg,rgba(255,253,248,0.98),rgba(250,247,239,0.96))] p-3 text-[0.84rem] text-slate">
                 Loading location details…
               </div>
             )}

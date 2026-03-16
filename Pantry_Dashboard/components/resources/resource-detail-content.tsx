@@ -33,8 +33,24 @@ export function ResourceDetailContent({
 
   // Get demographics data for this resource's neighborhood (by zipcode first, then coordinates)
   const demographics = useMemo(() => {
-    return getDemographicsForResource(resource.zipCode, resource.coordinates);
-  }, [resource.zipCode, resource.coordinates]);
+    return getDemographicsForResource(resource.zipCode, resource.coordinates, {
+      borough: resource.boroughLabel,
+      name: resource.name,
+      description: resource.description,
+      address: resource.address,
+      streetAddress: resource.streetAddress,
+      cityStateZip: resource.cityStateZip,
+    });
+  }, [
+    resource.address,
+    resource.boroughLabel,
+    resource.cityStateZip,
+    resource.coordinates,
+    resource.description,
+    resource.name,
+    resource.streetAddress,
+    resource.zipCode,
+  ]);
 
   const boroughName = useMemo(() => {
     if (!resource.coordinates) return null;
@@ -44,11 +60,11 @@ export function ResourceDetailContent({
   return (
     <div className="space-y-5">
       <section className="panel-surface overflow-hidden">
-        <div className="grid gap-5 p-5 lg:grid-cols-[1.08fr,1fr]">
+        <div className="grid gap-4 p-[1.125rem] lg:grid-cols-[1.05fr,1fr]">
           <ResourceImage
             resource={resource}
             alt={resource.name}
-            className="h-72 lg:h-full"
+            className="h-64 lg:h-full"
             overlay={
               <div className="flex flex-wrap items-center gap-2">
                 {showStatus ? (
@@ -65,12 +81,12 @@ export function ResourceDetailContent({
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">
                   Resource Detail
                 </p>
-                <h1 className="mt-2 text-4xl leading-tight text-ink">{resource.name}</h1>
+                <h1 className="mt-1.5 text-[2.35rem] leading-tight text-ink">{resource.name}</h1>
               </div>
               <BookmarkButton resource={resource} />
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {showStatus ? (
                 <span className="status-pill bg-pine/10 text-pine">{resource.status.label}</span>
               ) : null}
@@ -90,9 +106,9 @@ export function ResourceDetailContent({
               ) : null}
             </div>
 
-            <p className="mt-4 text-sm leading-6 text-slate">{resource.description}</p>
+            <p className="mt-3 text-sm leading-6 text-slate">{resource.description}</p>
 
-            <div className="mt-5 grid gap-3 text-sm text-slate sm:grid-cols-2">
+            <div className="mt-4 grid gap-2.5 text-sm text-slate sm:grid-cols-2">
               <InfoTile
                 icon={<MapPin className="mt-0.5 h-4 w-4 shrink-0 text-moss" />}
                 label="Address"
@@ -133,7 +149,7 @@ export function ResourceDetailContent({
               />
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {resource.tags.length ? (
                 resource.tags.map((tag) => (
                   <span
@@ -158,11 +174,11 @@ export function ResourceDetailContent({
       {/* Neighborhood Demographics Section */}
       {demographics.pieData.length > 0 && (
         <section className="panel-surface p-5">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-3.5 flex items-center gap-2">
             <Users className="h-5 w-5 text-moss" />
             <h3 className="text-lg font-semibold text-ink">Neighborhood Demographics</h3>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col items-center justify-center rounded-2xl bg-mist/50 p-4">
               <DemographicsPieChart
                 data={demographics.pieData}
@@ -176,6 +192,12 @@ export function ResourceDetailContent({
                 <div className="rounded-xl bg-mist/50 p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate/60">Poverty Rate</p>
                   <p className="text-xl font-bold text-ink">{demographics.tract.poverty.rate_pct.toFixed(1)}%</p>
+                </div>
+              )}
+              {demographics.tract && demographics.tract.poverty?.rate_pct === undefined && (
+                <div className="rounded-xl bg-mist/50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate/60">Poverty Rate</p>
+                  <p className="text-sm font-semibold text-slate">Poverty data unavailable</p>
                 </div>
               )}
               {(demographics.tract?.snap?.rate_pct !== undefined || demographics.tract?.snap?.households_pct !== undefined) && (

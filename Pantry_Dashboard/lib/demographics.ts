@@ -6,6 +6,7 @@
  */
 
 import demographicsData from '@/src/data/demographicsData.json';
+import { lookupNycPovertyRate } from '@/lib/nyc-poverty';
 
 export interface EthnicityData {
   white: number;
@@ -58,6 +59,15 @@ export interface PieDataItem {
   value: number;
   color: string;
 }
+
+type DemographicsLookupContext = {
+  borough?: string | null;
+  name?: string | null;
+  description?: string | null;
+  address?: string | null;
+  streetAddress?: string | null;
+  cityStateZip?: string | null;
+};
 
 const tracts = (demographicsData as unknown as { tracts: Record<string, TractData> }).tracts;
 
@@ -125,6 +135,15 @@ function getCountyFromZipcode(zipCode: string): string | null {
   if (!zipCode || zipCode.length < 3) return null;
   const prefix = zipCode.substring(0, 3);
   return zipcodeToCounty[prefix] ?? null;
+}
+
+function getBoroughLabelFromCountyCode(countyCode: string | null) {
+  if (countyCode === '36005') return 'Bronx';
+  if (countyCode === '36047') return 'Brooklyn';
+  if (countyCode === '36061') return 'Manhattan';
+  if (countyCode === '36081') return 'Queens';
+  if (countyCode === '36085') return 'Staten Island';
+  return null;
 }
 
 /**
@@ -199,6 +218,7 @@ function getAggregatedCountyDemographics(countyCode: string): TractData | null {
 export function getDemographicsForResource(
   zipCode: string | null,
   coordinates: { latitude: number; longitude: number } | null,
+  context: DemographicsLookupContext = {},
 ): { tract: TractData | null; pieData: PieDataItem[] } {
   let countyCode: string | null = null;
 
@@ -219,7 +239,30 @@ export function getDemographicsForResource(
   // Get aggregated borough-level demographics
   const tract = getAggregatedCountyDemographics(countyCode);
   const pieData = tract ? createEthnicityPieData(tract.ethnicity_pct) : [];
-  return { tract, pieData };
+  const borough = context.borough ?? getBoroughLabelFromCountyCode(countyCode);
+  const povertyMatch = lookupNycPovertyRate({
+    borough,
+    name: context.name,
+    description: context.description,
+    address: context.address,
+    streetAddress: context.streetAddress,
+  });
+
+  if (!tract) {
+    return { tract, pieData };
+  }
+
+  return {
+    tract: {
+      ...tract,
+      // Keep ACS ethnicity and SNAP fields, but prefer the NYC poverty dataset when available.
+      poverty:
+        povertyMatch
+          ? { rate_pct: povertyMatch.percent }
+          : tract.poverty,
+    },
+    pieData,
+  };
 }
 
 /**

@@ -208,25 +208,36 @@ export type BookmarkedResource = Pick<
   Resource,
   | 'id'
   | 'name'
+  | 'description'
+  | 'descriptionEs'
   | 'address'
   | 'streetAddress'
   | 'cityStateZip'
+  | 'city'
+  | 'state'
   | 'zipCode'
   | 'borough'
   | 'boroughLabel'
   | 'coordinates'
+  | 'timezone'
   | 'phone'
   | 'website'
   | 'resourceTypeId'
   | 'resourceTypeLabel'
+  | 'resourceStatus'
+  | 'usageLimitSummary'
   | 'tags'
   | 'images'
   | 'primaryImageUrl'
+  | 'confidence'
   | 'ratingAverage'
   | 'reviewCount'
   | 'travelDistanceMiles'
+  | 'openByAppointment'
   | 'scheduleSummary'
+  | 'weeklySchedule'
   | 'status'
+  | 'occurrences'
   // Team 7 Enhanced Fields
   | 'hasFreshProduce'
   | 'hasHalal'
@@ -238,7 +249,6 @@ export type BookmarkedResource = Pick<
 >;
 
 export type DashboardFilterState = {
-  location: string;
   searchText: string;
   borough: '' | Borough;
   resourceTypeId: string;

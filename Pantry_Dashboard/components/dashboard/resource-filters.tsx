@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, Filter, Search, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, Search, SlidersHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { BOROUGH_FILTER_OPTIONS } from '@/lib/boroughs';
@@ -72,43 +72,33 @@ export function ResourceFilters({
   const [showAdvanced, setShowAdvanced] = useState(activeAdvancedCount > 0);
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="space-y-2.5">
+      <div className="flex flex-wrap items-start justify-between gap-2.5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">Filters</p>
-          <h2 className="mt-1 text-[1.85rem] leading-tight text-ink">Explore resources</h2>
+          <h2 className="mt-1 text-[1.65rem] leading-tight text-ink">Explore resources</h2>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate">
+          <div className="rounded-full bg-mist px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-slate">
             {resultCount} shown
           </div>
           {pageLabel ? (
-            <div className="rounded-full border border-line/70 bg-white/75 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate">
+            <div className="rounded-full border border-line/70 bg-white/75 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-slate">
               {pageLabel}
             </div>
           ) : null}
         </div>
       </div>
 
-      <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-[minmax(0,1.35fr),minmax(0,1fr),210px,210px]">
-        <label className="flex items-center gap-3 rounded-[22px] border border-line/80 bg-white/85 px-4 py-2.5">
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr),164px,164px]">
+        <label className="flex items-center gap-3 rounded-[20px] border border-line/80 bg-white/85 px-4 py-2">
           <Search className="h-4 w-4 text-moss" />
           <input
             value={filters.searchText}
             onChange={(event) => onChange({ searchText: event.target.value })}
-            placeholder="Search pantry, meals, or tags"
-            className="w-full bg-transparent text-sm text-ink placeholder:text-slate/70"
-          />
-        </label>
-
-        <label className="flex items-center gap-3 rounded-[22px] border border-line/80 bg-white/85 px-4 py-2.5">
-          <Filter className="h-4 w-4 text-moss" />
-          <input
-            value={filters.location}
-            onChange={(event) => onChange({ location: event.target.value })}
-            placeholder="Location"
-            className="w-full bg-transparent text-sm text-ink placeholder:text-slate/70"
+            placeholder="Pantry, meal, or tag"
+            className="w-full min-w-0 bg-transparent text-sm text-ink placeholder:text-slate/70"
           />
         </label>
 
@@ -117,6 +107,7 @@ export function ResourceFilters({
           value={filters.timeframe}
           options={timeframeOptions}
           includeAllOption={false}
+          compact
           onChange={(value: string) => onChange({ timeframe: value as DashboardFilterState['timeframe'] })}
         />
 
@@ -125,12 +116,13 @@ export function ResourceFilters({
           value={filters.sort}
           options={sortOptions}
           includeAllOption={false}
+          compact
           onChange={(value: string) => onChange({ sort: value as DashboardFilterState['sort'] })}
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <QuickFilterChip
             label="Fresh Produce"
             active={filters.hasFreshProduce}
@@ -171,7 +163,7 @@ export function ResourceFilters({
         <button
           type="button"
           onClick={() => setShowAdvanced((current) => !current)}
-          className="inline-flex items-center gap-2 rounded-full border border-line/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate transition hover:border-pine/30 hover:text-pine"
+          className="inline-flex items-center gap-2 rounded-full border border-line/80 bg-white/80 px-3.5 py-1.5 text-sm font-semibold text-slate transition hover:border-pine/30 hover:text-pine"
         >
           <SlidersHorizontal className="h-4 w-4" />
           More filters
@@ -187,8 +179,8 @@ export function ResourceFilters({
       </div>
 
       {showAdvanced ? (
-        <div className="rounded-[24px] border border-line/80 bg-white/75 p-4 shadow-sm">
-          <div className="grid gap-2.5 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-[22px] border border-line/80 bg-white/75 p-3.5 shadow-sm">
+          <div className="grid gap-2 lg:grid-cols-2 xl:grid-cols-3">
             <FilterSelect
               label="Borough"
               value={filters.borough}
@@ -210,35 +202,39 @@ export function ResourceFilters({
             />
           </div>
 
-          <div className="mt-3 grid gap-2.5 lg:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-2.5 grid gap-2 lg:grid-cols-[minmax(238px,1.2fr),repeat(3,minmax(0,1fr))]">
             <ToggleRow
               label="Sync to map"
               description="Limit list to viewport"
               checked={filters.syncListToMap}
               onToggle={() => onChange({ syncListToMap: !filters.syncListToMap })}
+              className="h-full min-h-[60px]"
             />
             <QuickFilterChip
               label="High wait times"
               active={filters.highestWait}
               onClick={() => onChange({ highestWait: !filters.highestWait })}
+              className="min-h-[60px] w-full rounded-[20px] px-3.5 py-2.5 text-sm whitespace-normal"
             />
             <QuickFilterChip
               label="High failure rates"
               active={filters.highFailureRate}
               onClick={() => onChange({ highFailureRate: !filters.highFailureRate })}
+              className="min-h-[60px] w-full rounded-[20px] px-3.5 py-2.5 text-sm whitespace-normal"
             />
             <QuickFilterChip
               label="Inaccurate listings"
               active={filters.inaccurateListings}
               onClick={() => onChange({ inaccurateListings: !filters.inaccurateListings })}
+              className="min-h-[60px] w-full rounded-[20px] px-3.5 py-2.5 text-sm whitespace-normal"
             />
           </div>
         </div>
       ) : null}
 
       {selectedName ? (
-        <div className="rounded-[22px] border border-line/80 bg-white/80 px-4 py-3.5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="rounded-[20px] border border-line/80 bg-white/80 px-3.5 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div>
               <p className="text-sm font-semibold text-ink">Nearby highlight radius</p>
               <p className="text-xs text-slate">
@@ -270,22 +266,32 @@ function FilterSelect({
   options,
   onChange,
   includeAllOption = true,
+  compact = false,
 }: {
   label: string;
   value: string;
   options: Option[];
   onChange: (value: string) => void;
   includeAllOption?: boolean;
+  compact?: boolean;
 }) {
   return (
-    <label className="rounded-[22px] border border-line/80 bg-white/85 px-4 py-3">
+    <label
+      className={cn(
+        'rounded-[20px] border border-line/80 bg-white/85 px-4',
+        compact ? 'py-1.5' : 'py-2.5',
+      )}
+    >
       <span className="block text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate">
         {label}
       </span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 w-full bg-transparent text-sm font-medium text-ink outline-none"
+        className={cn(
+          'w-full bg-transparent font-medium text-ink outline-none',
+          compact ? 'mt-0.5 text-[0.82rem]' : 'mt-1.5 text-sm',
+        )}
       >
         {includeAllOption ? <option value="">All</option> : null}
         {options.map((option) => (
@@ -303,22 +309,29 @@ function ToggleRow({
   description,
   checked,
   onToggle,
+  className,
 }: {
   label: string;
   description: string;
   checked: boolean;
   onToggle: () => void;
+  className?: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-[22px] border border-line/80 bg-white/85 px-4 py-3 text-sm">
-      <div>
+    <div
+      className={cn(
+        'flex items-center justify-between gap-3 rounded-[20px] border border-line/80 bg-white/85 px-4 py-2.5 text-sm',
+        className,
+      )}
+    >
+      <div className="min-w-0">
         <p className="font-semibold text-ink">{label}</p>
         <p className="text-xs text-slate">{description}</p>
       </div>
       <button
         type="button"
         onClick={onToggle}
-        className={`relative h-7 w-12 rounded-full transition ${checked ? 'bg-pine' : 'bg-line'}`}
+        className={`relative h-7 w-12 shrink-0 rounded-full transition ${checked ? 'bg-pine' : 'bg-line'}`}
         aria-pressed={checked}
       >
         <span
@@ -335,20 +348,28 @@ function QuickFilterChip({
   label,
   active,
   onClick,
+  compact = false,
+  className,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  compact?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-full border px-3.5 py-2 text-sm font-semibold transition whitespace-nowrap',
+        compact
+          ? 'whitespace-nowrap rounded-full border px-2.5 py-1 text-[0.72rem] font-semibold transition'
+          : 'whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition',
+        !compact && 'inline-flex items-center justify-center text-center leading-snug',
         active
           ? 'border-amber/70 bg-amber text-ink shadow-soft'
           : 'border-line/80 bg-white/85 text-slate hover:border-pine/30 hover:text-pine',
+        className,
       )}
     >
       {label}

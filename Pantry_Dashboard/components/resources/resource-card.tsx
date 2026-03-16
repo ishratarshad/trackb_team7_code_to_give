@@ -79,24 +79,24 @@ export function ResourceCard({
   return (
     <article
       className={cn(
-        'overflow-hidden rounded-[24px] border bg-white/88 shadow-soft transition',
+        'overflow-hidden rounded-[22px] border bg-white/88 shadow-soft transition',
         selected ? 'border-pine/40 ring-2 ring-pine/20' : 'border-line/80 hover:border-pine/25',
       )}
     >
-      <div className="grid gap-3 p-3 md:grid-cols-[118px,1fr] md:p-3.5">
+      <div className="grid gap-2.5 p-2.5 md:grid-cols-[108px,1fr] md:p-3">
         <ResourceImage
           resource={resource}
           alt={resourceName}
-          className="h-24 md:h-full"
+          className="h-[5.5rem] md:h-full"
           overlay={
             <div className="flex items-end justify-between gap-2">
               {resourceTypeLabel ? (
-                <div className="max-w-full truncate whitespace-nowrap rounded-full border border-pine/30 bg-pine px-3 py-1.5 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-white shadow-soft">
+                <div className="max-w-full truncate whitespace-nowrap rounded-full border border-pine/30 bg-pine px-2.5 py-1 text-[0.58rem] font-bold uppercase tracking-[0.12em] text-white shadow-soft">
                   {resourceTypeLabel}
                 </div>
               ) : null}
               {nearby ? (
-                <div className="rounded-full bg-amber/95 px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-ink shadow-soft">
+                <div className="rounded-full bg-amber/95 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-ink shadow-soft">
                   Nearby
                 </div>
               ) : null}
@@ -107,15 +107,15 @@ export function ResourceCard({
         <div className="flex min-w-0 flex-col">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="line-clamp-2 text-[1.02rem] leading-tight text-ink lg:text-[1.1rem]">
+              <h3 className="line-clamp-2 text-[0.96rem] leading-tight text-ink lg:text-[1.02rem]">
                 {resourceName}
               </h3>
-              <p className="mt-1 line-clamp-2 text-sm text-slate">{resourceAddress}</p>
+              <p className="mt-0.5 line-clamp-2 text-[0.82rem] text-slate">{resourceAddress}</p>
             </div>
             <BookmarkButton resource={resource} />
           </div>
 
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
             {showStatus ? (
               <span className="status-pill bg-pine/10 text-pine">{statusLabel}</span>
             ) : null}
@@ -138,11 +138,11 @@ export function ResourceCard({
           </div>
 
           {visibleTags.length ? (
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {visibleTags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="rounded-full border border-line/70 bg-mist/80 px-2.5 py-1 text-[0.68rem] font-medium uppercase tracking-[0.12em] text-slate"
+                  className="rounded-full border border-line/70 bg-mist/80 px-2.5 py-0.5 text-[0.62rem] font-medium uppercase tracking-[0.1em] text-slate"
                 >
                   {tag.label}
                 </span>
@@ -151,12 +151,12 @@ export function ResourceCard({
           ) : null}
 
           {foodTags.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
               {foodTags.slice(0, 4).map((tag) => (
                 <span
                   key={tag.key}
                   className={cn(
-                    'rounded-full px-2 py-0.5 text-[0.65rem] font-semibold',
+                    'rounded-full px-2 py-0.5 text-[0.6rem] font-semibold',
                     tag.bgColor,
                     tag.textColor
                   )}
@@ -165,19 +165,19 @@ export function ResourceCard({
                 </span>
               ))}
               {foodTags.length > 4 ? (
-                <span className="rounded-full bg-slate/10 px-2 py-0.5 text-[0.65rem] font-semibold text-slate">
+                <span className="rounded-full bg-slate/10 px-2 py-0.5 text-[0.6rem] font-semibold text-slate">
                   +{foodTags.length - 4}
                 </span>
               ) : null}
             </div>
           ) : null}
 
-          <div className="mt-3 flex flex-wrap items-center gap-2.5">
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
             {onMoreInfo ? (
               <button
                 type="button"
                 onClick={onMoreInfo}
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-pine"
+                className="inline-flex items-center gap-2 rounded-full bg-ink px-3 py-1.5 text-[0.84rem] font-semibold text-white transition hover:bg-pine"
               >
                 More Info
                 <ArrowRight className="h-4 w-4" />
@@ -186,14 +186,14 @@ export function ResourceCard({
             {!onMoreInfo && detailHref ? (
               <Link
                 href={detailHref}
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-pine"
+                className="inline-flex items-center gap-2 rounded-full bg-ink px-3 py-1.5 text-[0.84rem] font-semibold text-white transition hover:bg-pine"
               >
                 View Details
                 <ArrowRight className="h-4 w-4" />
               </Link>
             ) : null}
             {showStatus && statusDetail ? (
-              <p className="text-[0.68rem] uppercase tracking-[0.14em] text-slate/80">
+              <p className="text-[0.62rem] uppercase tracking-[0.12em] text-slate/80">
                 {statusDetail}
               </p>
             ) : null}

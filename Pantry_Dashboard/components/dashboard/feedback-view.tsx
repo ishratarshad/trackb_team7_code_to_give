@@ -24,11 +24,11 @@ export function FeedbackView({ resources = [] }: { resources: Resource[] }) {
   }));
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr),minmax(320px,400px)]">
-      <section className="panel-surface overflow-hidden rounded-[22px] border border-line/70 p-6">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr),minmax(320px,390px)]">
+      <section className="panel-surface overflow-hidden rounded-[22px] border border-line/70 p-5">
         <FeedbackForm resources={feedbackResources} />
       </section>
-      <section className="panel-surface overflow-hidden rounded-[22px] border border-line/70 p-6">
+      <section className="panel-surface overflow-hidden rounded-[22px] border border-line/70 p-5">
         <FeedbackSummaryCard />
       </section>
     </div>
@@ -118,7 +118,7 @@ function FeedbackForm({
   const showPhotoPublic = !!photoUrl.trim();
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3.5">
       <h3 className="text-lg font-bold text-ink">Submit Resource Feedback</h3>
 
       {error && (
@@ -153,7 +153,7 @@ function FeedbackForm({
             value={resourceId}
             onChange={(e) => setResourceId(e.target.value)}
             required
-            className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2.5 text-sm text-ink"
+            className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2 text-sm text-ink"
           >
             <option value="">Select a resource…</option>
             {resources.map((r) => (
@@ -170,7 +170,7 @@ function FeedbackForm({
             value={resourceId}
             onChange={(e) => setResourceId(e.target.value)}
             required
-            className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2.5 text-sm text-ink"
+            className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2 text-sm text-ink"
           />
         )}
       </div>
@@ -185,7 +185,7 @@ function FeedbackForm({
           placeholder="e.g. client_123"
           value={authorId}
           onChange={(e) => setAuthorId(e.target.value)}
-          className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2.5 text-sm text-ink"
+          className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2 text-sm text-ink"
         />
       </div>
 
@@ -206,7 +206,7 @@ function FeedbackForm({
                   setOtherReasonText('');
                 }
               }}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
                 attended === val ? 'bg-pine text-white' : 'border border-line/80 bg-white/80 text-slate'
               }`}
             >
@@ -228,7 +228,7 @@ function FeedbackForm({
             id="feedback-reason"
             value={selectedStructuredReason}
             onChange={(e) => setSelectedStructuredReason(e.target.value)}
-            className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2.5 text-sm text-ink"
+            className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2 text-sm text-ink"
           >
             <option value="">Select a reason…</option>
             {STRUCTURED_REASONS.map((r) => (
@@ -243,7 +243,7 @@ function FeedbackForm({
               placeholder="Please describe…"
               value={otherReasonText}
               onChange={(e) => setOtherReasonText(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2.5 text-sm text-ink"
+              className="mt-2 w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2 text-sm text-ink"
               aria-label="Other reason (optional)"
             />
           )}
@@ -258,7 +258,7 @@ function FeedbackForm({
               key={n}
               type="button"
               onClick={() => setRating(n)}
-              className={`rounded-full px-3 py-1.5 text-lg transition ${
+              className={`rounded-full px-3 py-1.25 text-lg transition ${
                 rating === n ? 'bg-amber text-ink' : 'border border-line/80 bg-white/80 text-slate/60'
               }`}
               aria-label={`${n} star${n > 1 ? 's' : ''}`}
@@ -279,7 +279,7 @@ function FeedbackForm({
           placeholder="Share your experience…"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2.5 text-sm text-ink"
+          className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2 text-sm text-ink"
         />
       </div>
 
@@ -294,7 +294,7 @@ function FeedbackForm({
           placeholder="0"
           value={waitTimeMinutes}
           onChange={(e) => setWaitTimeMinutes(e.target.value)}
-          className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2.5 text-sm text-ink"
+          className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2 text-sm text-ink"
         />
       </div>
 
@@ -312,7 +312,7 @@ function FeedbackForm({
               key={label}
               type="button"
               onClick={() => setInformationAccurate(val)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
                 informationAccurate === val ? 'bg-pine text-white' : 'border border-line/80 bg-white/80 text-slate'
               }`}
             >
@@ -332,7 +332,7 @@ function FeedbackForm({
           placeholder="https://..."
           value={photoUrl}
           onChange={(e) => setPhotoUrl(e.target.value)}
-          className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2.5 text-sm text-ink"
+          className="w-full rounded-xl border border-line/80 bg-white/80 px-4 py-2 text-sm text-ink"
         />
       </div>
 
@@ -365,7 +365,7 @@ function FeedbackForm({
       <button
         type="submit"
         disabled={submitting}
-        className="rounded-full bg-pine px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-moss disabled:opacity-50"
+        className="rounded-full bg-pine px-5 py-2 text-sm font-semibold text-white transition hover:bg-moss disabled:opacity-50"
       >
         {submitting ? 'Submitting…' : 'Submit Feedback'}
       </button>
@@ -417,9 +417,9 @@ function FeedbackSummaryCard() {
   } = summary;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       <h3 className="text-lg font-bold text-ink">Resource Feedback Summary</h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-mist/50 p-3 text-center">
           <p className="text-2xl font-bold text-pine">{total_reviews}</p>
           <p className="text-xs font-semibold text-slate/70">Total reviews</p>

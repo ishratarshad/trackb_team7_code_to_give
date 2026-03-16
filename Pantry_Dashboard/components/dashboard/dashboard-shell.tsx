@@ -26,7 +26,7 @@ export function DashboardShell({
       <div className="relative flex min-h-screen w-full flex-col">
 
         {/* TOP NAV BAR — Lemontree yellow strip */}
-        <div className="flex items-center justify-between bg-[#FFD700] px-6 py-4 shadow-sm">
+        <div className="flex items-center justify-between bg-[#FFD700] px-5 py-3.5 shadow-sm lg:px-6">
           <span className="text-[#6D4AFF] text-base font-black uppercase tracking-widest">
             LemonLens
           </span>
@@ -41,28 +41,28 @@ export function DashboardShell({
         </div>
 
         {/* PURPLE HERO — matches Lemontree's hero section */}
-        <header className="relative overflow-hidden bg-[#6D4AFF] px-8 py-9 sm:py-10 lg:px-16 lg:py-12">
+        <header className="relative overflow-hidden bg-[#6D4AFF] px-7 py-7 sm:py-8 lg:px-12 lg:py-9">
           {/* Decorative yellow glow */}
           <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-[#FFD700] opacity-15 blur-3xl pointer-events-none" />
 
-          <div className="relative mx-auto flex w-full max-w-[1920px] flex-col gap-4 lg:gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="relative mx-auto flex w-full max-w-[1920px] flex-col gap-3 lg:gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="max-w-3xl">
               {/* Title injected from DashboardClient */}
               <div className="text-white antialiased">
                 {title}
               </div>
-              <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-white/90 sm:text-base lg:text-lg">
+              <p className="mt-2.5 max-w-2xl text-sm font-medium leading-relaxed text-white/90 sm:text-[0.95rem] lg:text-base">
                 {description}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
               {aside}
             </div>
           </div>
         </header>
 
-        <main className="relative flex-1 px-4 py-4 sm:px-6 lg:px-8 lg:py-6 2xl:px-10">
+        <main className="relative flex-1 px-3.5 py-3 sm:px-5 lg:px-6 lg:py-4 2xl:px-8">
           {children}
         </main>
       </div>
