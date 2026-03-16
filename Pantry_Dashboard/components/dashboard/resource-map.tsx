@@ -672,7 +672,7 @@ export function ResourceMap({
                 onOpen={() => onOpenResource(popupResourceQuery.data.id)}
               />
             ) : (
-              <div className="w-[232px] rounded-[18px] bg-[linear-gradient(180deg,rgba(255,253,248,0.98),rgba(250,247,239,0.96))] p-3 text-[0.84rem] text-slate">
+              <div className="w-[232px] p-3 text-[0.84rem] text-slate">
                 Loading location details…
               </div>
             )}

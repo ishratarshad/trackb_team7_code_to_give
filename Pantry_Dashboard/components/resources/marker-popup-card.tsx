@@ -15,7 +15,7 @@ export function MarkerPopupCard({
   const averageWait = reviewPayload?.summary.averageWaitMinutes ?? null;
 
   return (
-    <div className="pointer-events-auto w-[252px] rounded-[18px] bg-[linear-gradient(180deg,rgba(255,253,248,0.98),rgba(250,247,239,0.96))] p-3">
+    <div className="pointer-events-auto w-[252px] p-3">
       <div className="flex items-start justify-between gap-2">
         <span className="inline-flex max-w-full items-center rounded-full bg-mist px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-moss">
           {resource.resourceTypeLabel}
