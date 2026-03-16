@@ -15,6 +15,8 @@ import {
   formatRating,
 } from '@/lib/formatters';
 import { getDemographicsForResource, getBoroughFromCoordinates } from '@/lib/demographics';
+import { getResourceFoodTags } from '@/lib/resource-food-tags';
+import { withResourceSupplyFlags } from '@/lib/resource-supply-flags';
 import type { Resource, ReviewPayload } from '@/types/resources';
 
 export function ResourceDetailContent({
@@ -26,6 +28,7 @@ export function ResourceDetailContent({
   reviewPayload?: ReviewPayload | null;
   timeframeLabel?: string;
 }) {
+  const enrichedResource = useMemo(() => withResourceSupplyFlags(resource), [resource]);
   const showStatus = resource.status.source === 'occurrences';
   const showRating = typeof resource.ratingAverage === 'number';
   const showReviewCount = resource.reviewCount > 0;
@@ -56,6 +59,7 @@ export function ResourceDetailContent({
     if (!resource.coordinates) return null;
     return getBoroughFromCoordinates(resource.coordinates.latitude, resource.coordinates.longitude);
   }, [resource.coordinates]);
+  const foodTags = getResourceFoodTags(enrichedResource);
 
   return (
     <div className="space-y-5">
@@ -168,6 +172,25 @@ export function ResourceDetailContent({
           </div>
         </div>
       </section>
+
+      {foodTags.length ? (
+        <section className="subtle-panel p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">
+            Pantry Supply
+          </p>
+          <h3 className="mt-1 text-2xl text-ink">Available food tags</h3>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {foodTags.map((tag) => (
+              <span
+                key={tag.key}
+                className={`${tag.bgColor} ${tag.textColor} rounded-full px-3 py-1 text-xs font-semibold`}
+              >
+                {tag.label}
+              </span>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <ScheduleSection resource={resource} />
 

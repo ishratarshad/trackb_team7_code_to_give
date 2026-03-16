@@ -5,6 +5,7 @@ import { BookmarkButton } from '@/components/resources/bookmark-button';
 import { ResourceImage } from '@/components/resources/resource-image';
 import { cn } from '@/lib/cn';
 import { compactNumber, formatRating, formatWaitTime } from '@/lib/formatters';
+import { getResourceFoodTags } from '@/lib/resource-food-tags';
 import type { BookmarkedResource, ReviewPayload } from '@/types/resources';
 
 type ResourceCardProps = {
@@ -15,35 +16,6 @@ type ResourceCardProps = {
   detailHref?: string;
   reviewPayload?: ReviewPayload | null;
 };
-
-type FoodTag = {
-  key: string;
-  label: string;
-  bgColor: string;
-  textColor: string;
-};
-
-const FOOD_TAG_CONFIG: Record<string, Omit<FoodTag, 'key'>> = {
-  hasFreshProduce: { label: 'Fresh Produce', bgColor: 'bg-emerald-100', textColor: 'text-emerald-700' },
-  hasDairy: { label: 'Dairy', bgColor: 'bg-sky-100', textColor: 'text-sky-700' },
-  hasMeat: { label: 'Meat', bgColor: 'bg-rose-100', textColor: 'text-rose-700' },
-  hasGrains: { label: 'Grains', bgColor: 'bg-amber-100', textColor: 'text-amber-700' },
-  hasCanned: { label: 'Canned', bgColor: 'bg-orange-100', textColor: 'text-orange-700' },
-  hasHalal: { label: 'Halal', bgColor: 'bg-teal-100', textColor: 'text-teal-700' },
-  hasKosher: { label: 'Kosher', bgColor: 'bg-violet-100', textColor: 'text-violet-700' },
-};
-
-function getFoodTags(resource: BookmarkedResource): FoodTag[] {
-  const tags: FoodTag[] = [];
-
-  for (const [key, config] of Object.entries(FOOD_TAG_CONFIG)) {
-    if (resource[key as keyof BookmarkedResource]) {
-      tags.push({ key, ...config });
-    }
-  }
-
-  return tags;
-}
 
 function stripParentheticalText(value: string) {
   return value.replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s{2,}/g, ' ').trim();
@@ -69,7 +41,7 @@ export function ResourceCard({
     }))
     .filter((tag) => tag.label)
     .slice(0, 2);
-  const foodTags = getFoodTags(resource);
+  const foodTags = getResourceFoodTags(resource);
   const showStatus = resource.status.source === 'occurrences' && Boolean(statusLabel);
   const showRating = typeof resource.ratingAverage === 'number';
   const showReviewCount = resource.reviewCount > 0;
