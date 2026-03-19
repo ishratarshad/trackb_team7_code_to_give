@@ -49,9 +49,6 @@ Instead of manually interpreting reviews and images, partners can immediately se
 # Video:  
 https://youtu.be/4kvC4jmpLTg
 
-# Website Link:
-https://lemonlens.vercel.app/
-
 ### LemonLens Operational Flow
 
 ![LemonLens System Architecture](images/systemdesign.png)
