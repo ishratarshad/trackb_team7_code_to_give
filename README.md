@@ -1,4 +1,4 @@
-# LemonLens
+# LemonLens Morgan Stanley Food Analytics Platform
 
 LemonLens is an operational analytics platform built for the Lemontree nonprofit as part of the Morgan Stanley Code to Give Hackathon.
 
